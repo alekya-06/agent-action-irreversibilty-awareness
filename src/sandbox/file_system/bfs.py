@@ -41,8 +41,8 @@ def find_recovery_path(
         A list of recovery actions if restoration is possible
         within max_steps; otherwise None.
     """
-    if max_steps < 0:
-        raise ValueError("max_steps must be non-negative")
+    if max_steps is not None and max_steps < 0:
+        raise ValueError("max_steps cannot be negative")
 
     original_fs.validate()
     current_fs.validate()
@@ -63,7 +63,7 @@ def find_recovery_path(
     while queue:
         fs, records, path = queue.popleft()
 
-        if len(path) >= max_steps:
+        if max_steps is not None and len(path) >= max_steps:
             continue
 
         # Generate only valid recovery actions.
