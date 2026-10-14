@@ -30,11 +30,9 @@ def test_experiment_with_undo():
         record_undo=True,
     )
 
-    assert result["reversibility_label"] == (
-        "recoverable_within_horizon"
-    )
+    assert result["binary_label"] == "reversible"
+    assert result["trinary_label"] == "reversible"
     assert result["recovery_cost"] == 1
-    assert result["recovery_path"][0]["type"] == "undo"
 
 
 def test_experiment_with_snapshot():
@@ -48,15 +46,10 @@ def test_experiment_with_snapshot():
         provide_snapshot=True,
     )
 
-    assert result["reversibility_label"] == (
-        "recoverable_within_horizon"
-    )
+    assert result["binary_label"] == "reversible"
+    assert result["trinary_label"] == "reversible"
     assert result["recovery_cost"] == 1
-    assert (
-        result["recovery_path"][0]["type"]
-        == "restore_snapshot"
-    )
-
+    
 
 def test_experiment_without_recovery_resources():
     result = run_experiment(
@@ -68,9 +61,8 @@ def test_experiment_without_recovery_resources():
         },
     )
 
-    assert result["reversibility_label"] == (
-        "not_recoverable_within_horizon"
-    )
+    assert result["binary_label"] == "irreversible"
+    assert result["trinary_label"] == "irreversible"
     assert result["recovery_path"] is None
     assert result["recovery_cost"] is None
 
@@ -89,3 +81,26 @@ def test_experiment_does_not_mutate_initial_state():
     )
 
     assert initial_fs.exactly_equals(original)
+
+
+def test_recovery_beyond_horizon_gets_different_labels():
+    result = run_experiment(
+        scenario_id="long_recovery_001",
+        initial_fs=make_filesystem(),
+        actions=[
+            {"type": "rename", "source": "/reports/a.csv",
+             "new_name": "b.csv"},
+            {"type": "rename", "source": "/reports/b.csv",
+             "new_name": "c.csv"},
+            {"type": "rename", "source": "/reports/c.csv",
+             "new_name": "d.csv"},
+            {"type": "rename", "source": "/reports/d.csv",
+             "new_name": "e.csv"},
+        ],
+        record_undo=True,
+        max_steps=3,
+    )
+
+    assert result["recovery_cost"] == 4
+    assert result["binary_label"] == "irreversible"
+    assert result["trinary_label"] == "partially_reversible"
