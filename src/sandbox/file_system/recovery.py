@@ -221,28 +221,3 @@ def apply_recovery_action(
         return new_fs, deepcopy(undo_records)
 
     raise ValueError(f"Unknown recovery action: {action_type}")
-
-def get_recovery_actions(fs, snapshots, undo_records):
-    actions = []
-
-    # 1. Try restoring snapshots first
-    for snapshot_id, snapshot_fs in snapshots.items():
-        if not fs.exactly_equals(snapshot_fs):
-            actions.append({
-                "type": "restore_snapshot",
-                "snapshot_id": snapshot_id
-            })
-
-    # 2. Then try undo actions
-    for action_id in undo_records:
-        try:
-            undo_action(fs, undo_records, action_id)
-            actions.append({
-                "type": "undo",
-                "action_id": action_id
-            })
-        except (ValueError, KeyError, TypeError):
-            continue
-
-    return actions
-

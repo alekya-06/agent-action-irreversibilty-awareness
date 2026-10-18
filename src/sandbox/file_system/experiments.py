@@ -85,6 +85,7 @@ def run_experiment(
         snapshots=snapshots,
         undo_records=undo_records,
         max_steps=None,
+        recovery_history=transition_records,
     )
 
     recovery_cost = (
