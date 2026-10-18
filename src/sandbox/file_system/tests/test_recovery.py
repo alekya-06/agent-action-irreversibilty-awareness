@@ -129,3 +129,63 @@ def test_recovery_does_not_mutate_original_state():
     )
 
     assert fs.exactly_equals(original)
+
+
+def test_undo_recursive_directory_deletion_restores_exact_state():
+    original = FileSystemState(
+        directories={
+            "/",
+            "/reports",
+            "/reports/2025",
+            "/archive",
+        },
+        files={
+            "/reports/summary.csv": "summary data",
+            "/reports/2025/january.csv": "january data",
+            "/archive/index.csv": "archive index",
+        },
+        metadata={
+            "/reports/summary.csv": {"importance": "high"},
+            "/reports/2025/january.csv": {"year": 2025},
+        },
+        dependencies={
+            "/reports/2025/january.csv": [
+                "/reports/summary.csv"
+            ],
+            "/archive/index.csv": [
+                "/reports/2025/january.csv"
+            ],
+        },
+    )
+
+    expected_state = original.clone()
+    undo_records = {}
+
+    # Delete the entire reports directory tree.
+    deleted, undo_records, _ = execute_with_undo(
+        original,
+        {
+            "type": "delete_directory",
+            "path": "/reports",
+            "recursive": True,
+        },
+        "recursive_delete_001",
+        undo_records,
+    )
+
+    assert "/reports" not in deleted.directories
+    assert "/reports/2025/january.csv" not in deleted.files
+
+    # Undo the deletion.
+    restored, remaining_records = undo_action(
+        deleted,
+        undo_records,
+        "recursive_delete_001",
+    )
+
+    # Every component must match the original state.
+    assert restored.exactly_equals(expected_state)
+    assert restored.validate()
+
+    # The undo record should have been consumed.
+    assert "recursive_delete_001" not in remaining_records
