@@ -236,6 +236,137 @@ SCENARIOS = [
             },
         ],
     },
+    
+    {
+        "group_id": "four_step_move_chain",
+        "fs": make_basic_fs,
+        "actions": [
+            {
+                "type": "move_file",
+                "source": "/reports/a.csv",
+                "destination": "/archive/a.csv",
+            },
+            {
+                "type": "move_file",
+                "source": "/archive/a.csv",
+                "destination": "/reports/a.csv",
+            },
+            {
+                "type": "move_file",
+                "source": "/reports/a.csv",
+                "destination": "/archive/a.csv",
+            },
+            {
+                "type": "move_file",
+                "source": "/archive/a.csv",
+                "destination": "/reports/final.csv",
+            },
+        ],
+    },
+    {
+        "group_id": "five_step_move_chain",
+        "fs": make_basic_fs,
+        "actions": [
+            {
+                "type": "move_file",
+                "source": "/reports/a.csv",
+                "destination": "/archive/a.csv",
+            },
+            {
+                "type": "move_file",
+                "source": "/archive/a.csv",
+                "destination": "/reports/a.csv",
+            },
+            {
+                "type": "move_file",
+                "source": "/reports/a.csv",
+                "destination": "/archive/a.csv",
+            },
+            {
+                "type": "move_file",
+                "source": "/archive/a.csv",
+                "destination": "/reports/a.csv",
+            },
+            {
+                "type": "move_file",
+                "source": "/reports/a.csv",
+                "destination": "/archive/final.csv",
+            },
+        ],
+    },
+    {
+        "group_id": "four_step_mixed_chain",
+        "fs": make_basic_fs,
+        "actions": [
+            {
+                "type": "rename",
+                "source": "/reports/a.csv",
+                "new_name": "stage1.csv",
+            },
+            {
+                "type": "move_file",
+                "source": "/reports/stage1.csv",
+                "destination": "/archive/stage1.csv",
+            },
+            {
+                "type": "rename",
+                "source": "/archive/stage1.csv",
+                "new_name": "stage2.csv",
+            },
+            {
+                "type": "move_file",
+                "source": "/archive/stage2.csv",
+                "destination": "/reports/final.csv",
+            },
+        ],
+    },
+    {
+    "group_id": "five_step_rename_chain",
+    "fs": make_basic_fs,
+    "actions": [
+        {"type": "rename", "source": "/reports/a.csv", "new_name": "stage1.csv"},
+        {"type": "rename", "source": "/reports/stage1.csv", "new_name": "stage2.csv"},
+        {"type": "rename", "source": "/reports/stage2.csv", "new_name": "stage3.csv"},
+        {"type": "rename", "source": "/reports/stage3.csv", "new_name": "stage4.csv"},
+        {"type": "rename", "source": "/reports/stage4.csv", "new_name": "stage5.csv"},
+    ],
+  },
+  {
+    "group_id": "six_step_rename_chain",
+    "fs": make_basic_fs,
+    "actions": [
+        {"type": "rename", "source": "/reports/a.csv", "new_name": "stage1.csv"},
+        {"type": "rename", "source": "/reports/stage1.csv", "new_name": "stage2.csv"},
+        {"type": "rename", "source": "/reports/stage2.csv", "new_name": "stage3.csv"},
+        {"type": "rename", "source": "/reports/stage3.csv", "new_name": "stage4.csv"},
+        {"type": "rename", "source": "/reports/stage4.csv", "new_name": "stage5.csv"},
+        {"type": "rename", "source": "/reports/stage5.csv", "new_name": "stage6.csv"},
+    ],
+ },
+ {
+    "group_id": "five_step_mixed_chain",
+    "fs": make_basic_fs,
+    "actions": [
+        {"type": "rename", "source": "/reports/a.csv", "new_name": "stage1.csv"},
+        {"type": "move_file", "source": "/reports/stage1.csv", "destination": "/archive/stage1.csv"},
+        {"type": "rename", "source": "/archive/stage1.csv", "new_name": "stage2.csv"},
+        {"type": "move_file", "source": "/archive/stage2.csv", "destination": "/reports/stage2.csv"},
+        {"type": "rename", "source": "/reports/stage2.csv", "new_name": "final.csv"},
+    ],
+},
+
+{
+    "group_id": "six_step_mixed_chain",
+    "fs": make_basic_fs,
+    "actions": [
+        {"type": "rename", "source": "/reports/a.csv", "new_name": "stage1.csv"},
+        {"type": "move_file", "source": "/reports/stage1.csv", "destination": "/archive/stage1.csv"},
+        {"type": "rename", "source": "/archive/stage1.csv", "new_name": "stage2.csv"},
+        {"type": "move_file", "source": "/archive/stage2.csv", "destination": "/reports/stage2.csv"},
+        {"type": "rename", "source": "/reports/stage2.csv", "new_name": "stage3.csv"},
+        {"type": "move_file", "source": "/reports/stage3.csv", "destination": "/archive/stage3.csv"},
+    ],
+},
 ]
 
 
@@ -290,7 +421,7 @@ def generate_dataset():
             # Extra fields for dataset auditing and grouped splitting.
             result["scenario_group_id"] = group_id
             result["resource_condition"] = resources["name"]
-            result["dataset_version"] = "pilot_v1"
+            result["dataset_version"] = "v2"
 
             rows.append(result)
 
@@ -341,8 +472,8 @@ def main():
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    dataset_path = OUTPUT_DIR / "filesystem_pilot.jsonl"
-    summary_path = OUTPUT_DIR / "filesystem_pilot_summary.json"
+    dataset_path = OUTPUT_DIR / "filesystem_.jsonl"
+    summary_path = OUTPUT_DIR / "filesystem_summary.json"
 
     # Write only after all experiments and validation succeed.
     with dataset_path.open("w", encoding="utf-8") as file:
@@ -350,7 +481,7 @@ def main():
             file.write(json.dumps(row, ensure_ascii=False) + "\n")
 
     summary = {
-        "dataset_version": "pilot_v1",
+        "dataset_version": "v2",
         "num_examples": len(rows),
         "num_scenario_groups": len(
             {row["scenario_group_id"] for row in rows}
