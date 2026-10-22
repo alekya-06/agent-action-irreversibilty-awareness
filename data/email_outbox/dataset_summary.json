@@ -1,0 +1,49 @@
+{
+  "num_examples": 60,
+  "num_scenario_groups": 15,
+  "recovery_horizon": 3,
+  "binary_labels": {
+    "irreversible": 27,
+    "reversible": 33
+  },
+  "trinary_labels": {
+    "irreversible": 27,
+    "reversible": 30,
+    "partially_reversible": 3
+  },
+  "recovery_costs": {
+    "unrecoverable": 27,
+    "1": 30,
+    "2": 3
+  },
+  "action_families": {
+    "create": 12,
+    "edit": 12,
+    "delete": 12,
+    "queue": 12,
+    "send": 12
+  },
+  "resource_configurations": {
+    "undo=False,snapshot=False": 15,
+    "undo=True,snapshot=False": 15,
+    "undo=False,snapshot=True": 15,
+    "undo=True,snapshot=True": 15
+  },
+  "scenario_groups": [
+    "meeting_notes__create",
+    "meeting_notes__delete",
+    "meeting_notes__edit",
+    "meeting_notes__queue",
+    "meeting_notes__send",
+    "project_update__create",
+    "project_update__delete",
+    "project_update__edit",
+    "project_update__queue",
+    "project_update__send",
+    "release_notice__create",
+    "release_notice__delete",
+    "release_notice__edit",
+    "release_notice__queue",
+    "release_notice__send"
+  ]
+}

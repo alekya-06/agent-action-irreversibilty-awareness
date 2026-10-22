@@ -1,0 +1,89 @@
+{
+  "seed": 42,
+  "split_ratios": {
+    "train": 0.7,
+    "validation": 0.15,
+    "test": 0.15
+  },
+  "num_examples": 60,
+  "num_scenario_groups": 15,
+  "group_assignments": {
+    "project_update__queue": "train",
+    "release_notice__queue": "train",
+    "project_update__edit": "train",
+    "project_update__delete": "train",
+    "release_notice__send": "train",
+    "release_notice__edit": "train",
+    "project_update__create": "train",
+    "meeting_notes__edit": "train",
+    "project_update__send": "train",
+    "meeting_notes__queue": "train",
+    "meeting_notes__send": "validation",
+    "release_notice__delete": "validation",
+    "meeting_notes__create": "test",
+    "meeting_notes__delete": "test",
+    "release_notice__create": "test"
+  },
+  "splits": {
+    "train": {
+      "scenario_groups": [
+        "project_update__queue",
+        "release_notice__queue",
+        "project_update__edit",
+        "project_update__delete",
+        "release_notice__send",
+        "release_notice__edit",
+        "project_update__create",
+        "meeting_notes__edit",
+        "project_update__send",
+        "meeting_notes__queue"
+      ],
+      "num_groups": 10,
+      "num_examples": 40,
+      "binary_labels": {
+        "irreversible": 17,
+        "reversible": 23
+      },
+      "trinary_labels": {
+        "irreversible": 17,
+        "reversible": 22,
+        "partially_reversible": 1
+      }
+    },
+    "validation": {
+      "scenario_groups": [
+        "meeting_notes__send",
+        "release_notice__delete"
+      ],
+      "num_groups": 2,
+      "num_examples": 8,
+      "binary_labels": {
+        "irreversible": 5,
+        "reversible": 3
+      },
+      "trinary_labels": {
+        "irreversible": 5,
+        "reversible": 2,
+        "partially_reversible": 1
+      }
+    },
+    "test": {
+      "scenario_groups": [
+        "meeting_notes__create",
+        "meeting_notes__delete",
+        "release_notice__create"
+      ],
+      "num_groups": 3,
+      "num_examples": 12,
+      "binary_labels": {
+        "irreversible": 5,
+        "reversible": 7
+      },
+      "trinary_labels": {
+        "irreversible": 5,
+        "reversible": 6,
+        "partially_reversible": 1
+      }
+    }
+  }
+}
