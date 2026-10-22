@@ -1,6 +1,7 @@
 {
   "dataset_version": "v2",
   "num_examples": 84,
+  "num_unique_scenarios": 21,
   "num_scenario_groups": 21,
   "binary_label_counts": {
     "irreversible": 17,

@@ -1,0 +1,506 @@
+{
+  "dataset_path": "D:\\agent-action-irreversibilty-awareness\\data\\filesystem\\filesystem_expanded_v2.jsonl",
+  "num_rows": 84,
+  "num_scenario_groups": 21,
+  "split_method": "scenario_grouped_train_validation_test",
+  "fractions": {
+    "train": 0.8,
+    "validation": 0.1,
+    "test": 0.1
+  },
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "splits": {
+    "42": {
+      "seed": 42,
+      "group_ids": {
+        "train": [
+          "delete_file",
+          "delete_nested_file",
+          "delete_then_rename",
+          "five_step_mixed_chain",
+          "four_step_mixed_chain",
+          "four_step_move_chain",
+          "four_step_rename_chain",
+          "move_file",
+          "move_file_with_dependencies",
+          "move_then_delete",
+          "move_then_rename",
+          "recursive_delete",
+          "rename_file",
+          "rename_file_with_metadata",
+          "six_step_mixed_chain",
+          "six_step_rename_chain",
+          "two_step_rename"
+        ],
+        "validation": [
+          "five_step_move_chain",
+          "rename_directory"
+        ],
+        "test": [
+          "five_step_rename_chain",
+          "three_step_rename"
+        ]
+      },
+      "partitions": {
+        "train": {
+          "rows": 68,
+          "scenario_groups": 17,
+          "binary_label_counts": {
+            "irreversible": 15,
+            "reversible": 53
+          },
+          "trinary_label_counts": {
+            "irreversible": 5,
+            "reversible": 53,
+            "partially_reversible": 10
+          },
+          "example_ids": [
+            "delete_file__both",
+            "delete_file__none",
+            "delete_file__snapshot",
+            "delete_file__undo",
+            "delete_nested_file__both",
+            "delete_nested_file__none",
+            "delete_nested_file__snapshot",
+            "delete_nested_file__undo",
+            "delete_then_rename__both",
+            "delete_then_rename__none",
+            "delete_then_rename__snapshot",
+            "delete_then_rename__undo",
+            "five_step_mixed_chain__both",
+            "five_step_mixed_chain__none",
+            "five_step_mixed_chain__snapshot",
+            "five_step_mixed_chain__undo",
+            "four_step_mixed_chain__both",
+            "four_step_mixed_chain__none",
+            "four_step_mixed_chain__snapshot",
+            "four_step_mixed_chain__undo",
+            "four_step_move_chain__both",
+            "four_step_move_chain__none",
+            "four_step_move_chain__snapshot",
+            "four_step_move_chain__undo",
+            "four_step_rename_chain__both",
+            "four_step_rename_chain__none",
+            "four_step_rename_chain__snapshot",
+            "four_step_rename_chain__undo",
+            "move_file__both",
+            "move_file__none",
+            "move_file__snapshot",
+            "move_file__undo",
+            "move_file_with_dependencies__both",
+            "move_file_with_dependencies__none",
+            "move_file_with_dependencies__snapshot",
+            "move_file_with_dependencies__undo",
+            "move_then_delete__both",
+            "move_then_delete__none",
+            "move_then_delete__snapshot",
+            "move_then_delete__undo",
+            "move_then_rename__both",
+            "move_then_rename__none",
+            "move_then_rename__snapshot",
+            "move_then_rename__undo",
+            "recursive_delete__both",
+            "recursive_delete__none",
+            "recursive_delete__snapshot",
+            "recursive_delete__undo",
+            "rename_file__both",
+            "rename_file__none",
+            "rename_file__snapshot",
+            "rename_file__undo",
+            "rename_file_with_metadata__both",
+            "rename_file_with_metadata__none",
+            "rename_file_with_metadata__snapshot",
+            "rename_file_with_metadata__undo",
+            "six_step_mixed_chain__both",
+            "six_step_mixed_chain__none",
+            "six_step_mixed_chain__snapshot",
+            "six_step_mixed_chain__undo",
+            "six_step_rename_chain__both",
+            "six_step_rename_chain__none",
+            "six_step_rename_chain__snapshot",
+            "six_step_rename_chain__undo",
+            "two_step_rename__both",
+            "two_step_rename__none",
+            "two_step_rename__snapshot",
+            "two_step_rename__undo"
+          ],
+          "path": "D:\\agent-action-irreversibilty-awareness\\data\\filesystem\\splits\\seed_42\\train.jsonl"
+        },
+        "validation": {
+          "rows": 8,
+          "scenario_groups": 2,
+          "binary_label_counts": {
+            "reversible": 8
+          },
+          "trinary_label_counts": {
+            "reversible": 8
+          },
+          "example_ids": [
+            "five_step_move_chain__both",
+            "five_step_move_chain__none",
+            "five_step_move_chain__snapshot",
+            "five_step_move_chain__undo",
+            "rename_directory__both",
+            "rename_directory__none",
+            "rename_directory__snapshot",
+            "rename_directory__undo"
+          ],
+          "path": "D:\\agent-action-irreversibilty-awareness\\data\\filesystem\\splits\\seed_42\\validation.jsonl"
+        },
+        "test": {
+          "rows": 8,
+          "scenario_groups": 2,
+          "binary_label_counts": {
+            "reversible": 6,
+            "irreversible": 2
+          },
+          "trinary_label_counts": {
+            "reversible": 6,
+            "partially_reversible": 2
+          },
+          "example_ids": [
+            "five_step_rename_chain__both",
+            "five_step_rename_chain__none",
+            "five_step_rename_chain__snapshot",
+            "five_step_rename_chain__undo",
+            "three_step_rename__both",
+            "three_step_rename__none",
+            "three_step_rename__snapshot",
+            "three_step_rename__undo"
+          ],
+          "path": "D:\\agent-action-irreversibilty-awareness\\data\\filesystem\\splits\\seed_42\\test.jsonl"
+        }
+      }
+    },
+    "43": {
+      "seed": 43,
+      "group_ids": {
+        "train": [
+          "delete_file",
+          "delete_nested_file",
+          "five_step_mixed_chain",
+          "five_step_move_chain",
+          "five_step_rename_chain",
+          "four_step_mixed_chain",
+          "four_step_move_chain",
+          "four_step_rename_chain",
+          "move_file",
+          "move_then_delete",
+          "recursive_delete",
+          "rename_directory",
+          "rename_file",
+          "rename_file_with_metadata",
+          "six_step_mixed_chain",
+          "six_step_rename_chain",
+          "three_step_rename"
+        ],
+        "validation": [
+          "move_file_with_dependencies",
+          "move_then_rename"
+        ],
+        "test": [
+          "delete_then_rename",
+          "two_step_rename"
+        ]
+      },
+      "partitions": {
+        "train": {
+          "rows": 68,
+          "scenario_groups": 17,
+          "binary_label_counts": {
+            "irreversible": 16,
+            "reversible": 52
+          },
+          "trinary_label_counts": {
+            "irreversible": 4,
+            "reversible": 52,
+            "partially_reversible": 12
+          },
+          "example_ids": [
+            "delete_file__both",
+            "delete_file__none",
+            "delete_file__snapshot",
+            "delete_file__undo",
+            "delete_nested_file__both",
+            "delete_nested_file__none",
+            "delete_nested_file__snapshot",
+            "delete_nested_file__undo",
+            "five_step_mixed_chain__both",
+            "five_step_mixed_chain__none",
+            "five_step_mixed_chain__snapshot",
+            "five_step_mixed_chain__undo",
+            "five_step_move_chain__both",
+            "five_step_move_chain__none",
+            "five_step_move_chain__snapshot",
+            "five_step_move_chain__undo",
+            "five_step_rename_chain__both",
+            "five_step_rename_chain__none",
+            "five_step_rename_chain__snapshot",
+            "five_step_rename_chain__undo",
+            "four_step_mixed_chain__both",
+            "four_step_mixed_chain__none",
+            "four_step_mixed_chain__snapshot",
+            "four_step_mixed_chain__undo",
+            "four_step_move_chain__both",
+            "four_step_move_chain__none",
+            "four_step_move_chain__snapshot",
+            "four_step_move_chain__undo",
+            "four_step_rename_chain__both",
+            "four_step_rename_chain__none",
+            "four_step_rename_chain__snapshot",
+            "four_step_rename_chain__undo",
+            "move_file__both",
+            "move_file__none",
+            "move_file__snapshot",
+            "move_file__undo",
+            "move_then_delete__both",
+            "move_then_delete__none",
+            "move_then_delete__snapshot",
+            "move_then_delete__undo",
+            "recursive_delete__both",
+            "recursive_delete__none",
+            "recursive_delete__snapshot",
+            "recursive_delete__undo",
+            "rename_directory__both",
+            "rename_directory__none",
+            "rename_directory__snapshot",
+            "rename_directory__undo",
+            "rename_file__both",
+            "rename_file__none",
+            "rename_file__snapshot",
+            "rename_file__undo",
+            "rename_file_with_metadata__both",
+            "rename_file_with_metadata__none",
+            "rename_file_with_metadata__snapshot",
+            "rename_file_with_metadata__undo",
+            "six_step_mixed_chain__both",
+            "six_step_mixed_chain__none",
+            "six_step_mixed_chain__snapshot",
+            "six_step_mixed_chain__undo",
+            "six_step_rename_chain__both",
+            "six_step_rename_chain__none",
+            "six_step_rename_chain__snapshot",
+            "six_step_rename_chain__undo",
+            "three_step_rename__both",
+            "three_step_rename__none",
+            "three_step_rename__snapshot",
+            "three_step_rename__undo"
+          ],
+          "path": "D:\\agent-action-irreversibilty-awareness\\data\\filesystem\\splits\\seed_43\\train.jsonl"
+        },
+        "validation": {
+          "rows": 8,
+          "scenario_groups": 2,
+          "binary_label_counts": {
+            "reversible": 8
+          },
+          "trinary_label_counts": {
+            "reversible": 8
+          },
+          "example_ids": [
+            "move_file_with_dependencies__both",
+            "move_file_with_dependencies__none",
+            "move_file_with_dependencies__snapshot",
+            "move_file_with_dependencies__undo",
+            "move_then_rename__both",
+            "move_then_rename__none",
+            "move_then_rename__snapshot",
+            "move_then_rename__undo"
+          ],
+          "path": "D:\\agent-action-irreversibilty-awareness\\data\\filesystem\\splits\\seed_43\\validation.jsonl"
+        },
+        "test": {
+          "rows": 8,
+          "scenario_groups": 2,
+          "binary_label_counts": {
+            "reversible": 7,
+            "irreversible": 1
+          },
+          "trinary_label_counts": {
+            "reversible": 7,
+            "irreversible": 1
+          },
+          "example_ids": [
+            "delete_then_rename__both",
+            "delete_then_rename__none",
+            "delete_then_rename__snapshot",
+            "delete_then_rename__undo",
+            "two_step_rename__both",
+            "two_step_rename__none",
+            "two_step_rename__snapshot",
+            "two_step_rename__undo"
+          ],
+          "path": "D:\\agent-action-irreversibilty-awareness\\data\\filesystem\\splits\\seed_43\\test.jsonl"
+        }
+      }
+    },
+    "44": {
+      "seed": 44,
+      "group_ids": {
+        "train": [
+          "delete_file",
+          "delete_nested_file",
+          "delete_then_rename",
+          "five_step_mixed_chain",
+          "five_step_move_chain",
+          "five_step_rename_chain",
+          "four_step_move_chain",
+          "move_file",
+          "move_file_with_dependencies",
+          "move_then_rename",
+          "recursive_delete",
+          "rename_directory",
+          "rename_file",
+          "rename_file_with_metadata",
+          "six_step_mixed_chain",
+          "six_step_rename_chain",
+          "two_step_rename"
+        ],
+        "validation": [
+          "move_then_delete",
+          "three_step_rename"
+        ],
+        "test": [
+          "four_step_mixed_chain",
+          "four_step_rename_chain"
+        ]
+      },
+      "partitions": {
+        "train": {
+          "rows": 68,
+          "scenario_groups": 17,
+          "binary_label_counts": {
+            "irreversible": 12,
+            "reversible": 56
+          },
+          "trinary_label_counts": {
+            "irreversible": 4,
+            "reversible": 56,
+            "partially_reversible": 8
+          },
+          "example_ids": [
+            "delete_file__both",
+            "delete_file__none",
+            "delete_file__snapshot",
+            "delete_file__undo",
+            "delete_nested_file__both",
+            "delete_nested_file__none",
+            "delete_nested_file__snapshot",
+            "delete_nested_file__undo",
+            "delete_then_rename__both",
+            "delete_then_rename__none",
+            "delete_then_rename__snapshot",
+            "delete_then_rename__undo",
+            "five_step_mixed_chain__both",
+            "five_step_mixed_chain__none",
+            "five_step_mixed_chain__snapshot",
+            "five_step_mixed_chain__undo",
+            "five_step_move_chain__both",
+            "five_step_move_chain__none",
+            "five_step_move_chain__snapshot",
+            "five_step_move_chain__undo",
+            "five_step_rename_chain__both",
+            "five_step_rename_chain__none",
+            "five_step_rename_chain__snapshot",
+            "five_step_rename_chain__undo",
+            "four_step_move_chain__both",
+            "four_step_move_chain__none",
+            "four_step_move_chain__snapshot",
+            "four_step_move_chain__undo",
+            "move_file__both",
+            "move_file__none",
+            "move_file__snapshot",
+            "move_file__undo",
+            "move_file_with_dependencies__both",
+            "move_file_with_dependencies__none",
+            "move_file_with_dependencies__snapshot",
+            "move_file_with_dependencies__undo",
+            "move_then_rename__both",
+            "move_then_rename__none",
+            "move_then_rename__snapshot",
+            "move_then_rename__undo",
+            "recursive_delete__both",
+            "recursive_delete__none",
+            "recursive_delete__snapshot",
+            "recursive_delete__undo",
+            "rename_directory__both",
+            "rename_directory__none",
+            "rename_directory__snapshot",
+            "rename_directory__undo",
+            "rename_file__both",
+            "rename_file__none",
+            "rename_file__snapshot",
+            "rename_file__undo",
+            "rename_file_with_metadata__both",
+            "rename_file_with_metadata__none",
+            "rename_file_with_metadata__snapshot",
+            "rename_file_with_metadata__undo",
+            "six_step_mixed_chain__both",
+            "six_step_mixed_chain__none",
+            "six_step_mixed_chain__snapshot",
+            "six_step_mixed_chain__undo",
+            "six_step_rename_chain__both",
+            "six_step_rename_chain__none",
+            "six_step_rename_chain__snapshot",
+            "six_step_rename_chain__undo",
+            "two_step_rename__both",
+            "two_step_rename__none",
+            "two_step_rename__snapshot",
+            "two_step_rename__undo"
+          ],
+          "path": "D:\\agent-action-irreversibilty-awareness\\data\\filesystem\\splits\\seed_44\\train.jsonl"
+        },
+        "validation": {
+          "rows": 8,
+          "scenario_groups": 2,
+          "binary_label_counts": {
+            "reversible": 7,
+            "irreversible": 1
+          },
+          "trinary_label_counts": {
+            "reversible": 7,
+            "irreversible": 1
+          },
+          "example_ids": [
+            "move_then_delete__both",
+            "move_then_delete__none",
+            "move_then_delete__snapshot",
+            "move_then_delete__undo",
+            "three_step_rename__both",
+            "three_step_rename__none",
+            "three_step_rename__snapshot",
+            "three_step_rename__undo"
+          ],
+          "path": "D:\\agent-action-irreversibilty-awareness\\data\\filesystem\\splits\\seed_44\\validation.jsonl"
+        },
+        "test": {
+          "rows": 8,
+          "scenario_groups": 2,
+          "binary_label_counts": {
+            "irreversible": 4,
+            "reversible": 4
+          },
+          "trinary_label_counts": {
+            "partially_reversible": 4,
+            "reversible": 4
+          },
+          "example_ids": [
+            "four_step_mixed_chain__both",
+            "four_step_mixed_chain__none",
+            "four_step_mixed_chain__snapshot",
+            "four_step_mixed_chain__undo",
+            "four_step_rename_chain__both",
+            "four_step_rename_chain__none",
+            "four_step_rename_chain__snapshot",
+            "four_step_rename_chain__undo"
+          ],
+          "path": "D:\\agent-action-irreversibilty-awareness\\data\\filesystem\\splits\\seed_44\\test.jsonl"
+        }
+      }
+    }
+  }
+}

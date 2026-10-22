@@ -1,6 +1,7 @@
 {
-  "dataset_path": "D:\\agent-action-irreversibilty-awareness\\data\\filesystem\\filesystem.jsonl",
+  "dataset_path": "D:\\agent-action-irreversibilty-awareness\\data\\filesystem\\filesystem_expanded_v2.jsonl",
   "num_rows": 84,
+  "num_unique_scenarios": 21,
   "num_scenario_groups": 21,
   "test_fraction": 0.2,
   "split_method": "scenario_grouped",
@@ -37,7 +38,7 @@
         "rename_directory",
         "three_step_rename"
       ],
-      "train_scenario_ids": [
+      "train_example_ids": [
         "delete_file__both",
         "delete_file__none",
         "delete_file__snapshot",
@@ -107,7 +108,7 @@
         "two_step_rename__snapshot",
         "two_step_rename__undo"
       ],
-      "test_scenario_ids": [
+      "test_example_ids": [
         "five_step_move_chain__both",
         "five_step_move_chain__none",
         "five_step_move_chain__snapshot",
@@ -124,6 +125,31 @@
         "three_step_rename__none",
         "three_step_rename__snapshot",
         "three_step_rename__undo"
+      ],
+      "train_scenario_ids": [
+        "delete_file",
+        "delete_nested_file",
+        "delete_then_rename",
+        "five_step_mixed_chain",
+        "four_step_mixed_chain",
+        "four_step_move_chain",
+        "four_step_rename_chain",
+        "move_file",
+        "move_file_with_dependencies",
+        "move_then_delete",
+        "move_then_rename",
+        "recursive_delete",
+        "rename_file",
+        "rename_file_with_metadata",
+        "six_step_mixed_chain",
+        "six_step_rename_chain",
+        "two_step_rename"
+      ],
+      "test_scenario_ids": [
+        "five_step_move_chain",
+        "five_step_rename_chain",
+        "rename_directory",
+        "three_step_rename"
       ],
       "train_rows": 68,
       "test_rows": 16,
@@ -172,7 +198,7 @@
         "move_then_rename",
         "two_step_rename"
       ],
-      "train_scenario_ids": [
+      "train_example_ids": [
         "delete_file__both",
         "delete_file__none",
         "delete_file__snapshot",
@@ -242,7 +268,7 @@
         "three_step_rename__snapshot",
         "three_step_rename__undo"
       ],
-      "test_scenario_ids": [
+      "test_example_ids": [
         "delete_then_rename__both",
         "delete_then_rename__none",
         "delete_then_rename__snapshot",
@@ -259,6 +285,31 @@
         "two_step_rename__none",
         "two_step_rename__snapshot",
         "two_step_rename__undo"
+      ],
+      "train_scenario_ids": [
+        "delete_file",
+        "delete_nested_file",
+        "five_step_mixed_chain",
+        "five_step_move_chain",
+        "five_step_rename_chain",
+        "four_step_mixed_chain",
+        "four_step_move_chain",
+        "four_step_rename_chain",
+        "move_file",
+        "move_then_delete",
+        "recursive_delete",
+        "rename_directory",
+        "rename_file",
+        "rename_file_with_metadata",
+        "six_step_mixed_chain",
+        "six_step_rename_chain",
+        "three_step_rename"
+      ],
+      "test_scenario_ids": [
+        "delete_then_rename",
+        "move_file_with_dependencies",
+        "move_then_rename",
+        "two_step_rename"
       ],
       "train_rows": 68,
       "test_rows": 16,
@@ -307,7 +358,7 @@
         "move_then_delete",
         "three_step_rename"
       ],
-      "train_scenario_ids": [
+      "train_example_ids": [
         "delete_file__both",
         "delete_file__none",
         "delete_file__snapshot",
@@ -377,7 +428,7 @@
         "two_step_rename__snapshot",
         "two_step_rename__undo"
       ],
-      "test_scenario_ids": [
+      "test_example_ids": [
         "four_step_mixed_chain__both",
         "four_step_mixed_chain__none",
         "four_step_mixed_chain__snapshot",
@@ -394,6 +445,31 @@
         "three_step_rename__none",
         "three_step_rename__snapshot",
         "three_step_rename__undo"
+      ],
+      "train_scenario_ids": [
+        "delete_file",
+        "delete_nested_file",
+        "delete_then_rename",
+        "five_step_mixed_chain",
+        "five_step_move_chain",
+        "five_step_rename_chain",
+        "four_step_move_chain",
+        "move_file",
+        "move_file_with_dependencies",
+        "move_then_rename",
+        "recursive_delete",
+        "rename_directory",
+        "rename_file",
+        "rename_file_with_metadata",
+        "six_step_mixed_chain",
+        "six_step_rename_chain",
+        "two_step_rename"
+      ],
+      "test_scenario_ids": [
+        "four_step_mixed_chain",
+        "four_step_rename_chain",
+        "move_then_delete",
+        "three_step_rename"
       ],
       "train_rows": 68,
       "test_rows": 16,

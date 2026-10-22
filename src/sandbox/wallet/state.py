@@ -23,6 +23,7 @@ class WalletState:
 
     # IDs of transactions whose action-specific undo is available.
     undoable_transactions: set[str] = field(default_factory=set)
+    pending_account_undos: list[dict[str, Any]] = field(default_factory=list)
 
     next_transaction_id: int = 1
 
@@ -49,6 +50,19 @@ class WalletState:
             transaction["transaction_id"]
             for transaction in self.transactions
         ]
+    
+        for undo in self.pending_account_undos:
+            if not isinstance(undo, dict):
+                raise ValueError("Pending account undos must be dictionaries.")
+        
+            if undo.get("type") not in {
+                "undo_create_account",
+                "undo_delete_account",
+            }:
+                raise ValueError("Invalid pending account undo type.")
+        
+            if not isinstance(undo.get("account_id"), str) or not undo["account_id"].strip():
+                raise ValueError("Pending account undo requires an account ID.")
 
         if len(transaction_ids) != len(set(transaction_ids)):
             raise ValueError("Transaction IDs must be unique.")
@@ -87,6 +101,7 @@ class WalletState:
             "transactions": deepcopy(self.transactions),
             "reversed_transactions": sorted(self.reversed_transactions),
             "undoable_transactions": sorted(self.undoable_transactions),
+            "pending_account_undos": deepcopy(self.pending_account_undos),
             "next_transaction_id": self.next_transaction_id,
         }
 
@@ -100,6 +115,9 @@ class WalletState:
             ),
             undoable_transactions=set(
                 data.get("undoable_transactions", [])
+            ),
+            pending_account_undos=deepcopy(
+                    data.get("pending_account_undos", [])
             ),
             next_transaction_id=data.get("next_transaction_id", 1),
         )

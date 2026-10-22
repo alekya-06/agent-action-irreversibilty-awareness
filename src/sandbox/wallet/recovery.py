@@ -7,18 +7,11 @@ from state import WalletState
 from transitions import apply_undo
 
 
-def get_recovery_actions(
-    wallet: WalletState,
-) -> list[dict[str, Any]]:
-    """
-    Return action-specific undo operations currently available.
+def get_recovery_actions(wallet: WalletState) -> list[dict[str, Any]]:
+    candidates: list[dict[str, Any]] = [
+        dict(undo) for undo in wallet.pending_account_undos
+    ]
 
-    This function only proposes candidates. Each candidate is validated
-    by apply_undo() against the current wallet state.
-    """
-    candidates: list[dict[str, Any]] = []
-
-    # Transactions can be undone only while their undo permission remains.
     for transaction in wallet.transactions:
         transaction_id = transaction["transaction_id"]
 
@@ -52,7 +45,6 @@ def get_recovery_actions(
                 "amount": transaction["amount"],
             })
 
-    # Validate against the current state, not the original state.
     available: list[dict[str, Any]] = []
 
     for undo in candidates:
@@ -70,5 +62,4 @@ def execute_recovery_action(
     wallet: WalletState,
     undo: dict[str, Any],
 ) -> tuple[WalletState, dict[str, Any]]:
-    """Execute one validated action-specific undo."""
     return apply_undo(wallet, undo)
