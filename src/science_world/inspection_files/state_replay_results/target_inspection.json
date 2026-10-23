@@ -1,0 +1,451 @@
+[
+  {
+    "task": "melt",
+    "variation": 0,
+    "task_description": "Task Description:\nYour task is to melt water. First, focus on the substance. Then, take actions that will cause it to change its state of matter.",
+    "initial_observation": "This room is called the hallway. In it, you see: \n\tthe agent\n\ta substance called air\n\ta picture\nYou also see:\n\tA door to the art studio (that is closed)\n\tA door to the bedroom (that is closed)\n\tA door to the greenhouse (that is closed)\n\tA door to the kitchen (that is closed)\n\tA door to the living room (that is closed)\n\tA door to the workshop (that is closed)",
+    "matches": [
+      {
+        "path": "$.contents.workshop-17382.contents.ultra low temperature freezer-17415",
+        "name": "ultra low temperature freezer",
+        "uuid": "17415",
+        "isDeleted": false,
+        "propMaterial": null,
+        "propDevice": {
+          "isActivable": true,
+          "isActivated": true,
+          "isUsable": false,
+          "isBroken": false
+        },
+        "propHeatSource": null,
+        "propCoolingSource": {
+          "minTemp": -86.0,
+          "curSetTemp": -86.0
+        },
+        "propElectricalConnection": null
+      },
+      {
+        "path": "$.contents.bathroom-17349.contents.toilet-17361.contents.water-17367",
+        "name": "water",
+        "uuid": "17367",
+        "isDeleted": false,
+        "propMaterial": {
+          "substanceName": "water",
+          "color": "clear",
+          "temperatureC": 10.0,
+          "thermalConductivity": 0.5,
+          "stateOfMatter": "liquid",
+          "boilingPoint": 100.0,
+          "meltingPoint": 0.0,
+          "isCombusting": false,
+          "hasCombusted": false,
+          "combustionTicks": 100,
+          "electricallyConductive": false,
+          "frictionCoefficient": 0.1
+        },
+        "propDevice": null,
+        "propHeatSource": null,
+        "propCoolingSource": null,
+        "propElectricalConnection": null
+      },
+      {
+        "path": "$.contents.kitchen-17205.contents.freezer-17223",
+        "name": "freezer",
+        "uuid": "17223",
+        "isDeleted": false,
+        "propMaterial": null,
+        "propDevice": {
+          "isActivable": true,
+          "isActivated": true,
+          "isUsable": false,
+          "isBroken": false
+        },
+        "propHeatSource": null,
+        "propCoolingSource": {
+          "minTemp": -18.0,
+          "curSetTemp": -18.0
+        },
+        "propElectricalConnection": null
+      },
+      {
+        "path": "$.contents.kitchen-17205.contents.stove-17217",
+        "name": "stove",
+        "uuid": "17217",
+        "isDeleted": false,
+        "propMaterial": null,
+        "propDevice": {
+          "isActivable": true,
+          "isActivated": false,
+          "isUsable": false,
+          "isBroken": false
+        },
+        "propHeatSource": {
+          "maxTemp": 260.0,
+          "curSetTemp": null
+        },
+        "propCoolingSource": null,
+        "propElectricalConnection": null
+      },
+      {
+        "path": "$.contents.kitchen-17205.contents.fridge-17220",
+        "name": "fridge",
+        "uuid": "17220",
+        "isDeleted": false,
+        "propMaterial": null,
+        "propDevice": {
+          "isActivable": true,
+          "isActivated": true,
+          "isUsable": false,
+          "isBroken": false
+        },
+        "propHeatSource": null,
+        "propCoolingSource": {
+          "minTemp": 2.0,
+          "curSetTemp": 2.0
+        },
+        "propElectricalConnection": null
+      },
+      {
+        "path": "$.contents.kitchen-17205.contents.fridge-17220.contents.wood cup-17265.contents.orange juice-17268",
+        "name": "orange juice",
+        "uuid": "17268",
+        "isDeleted": false,
+        "propMaterial": {
+          "substanceName": "orange juice",
+          "color": "orange",
+          "temperatureC": 10.0,
+          "thermalConductivity": 0.5,
+          "stateOfMatter": "liquid",
+          "boilingPoint": 100.0,
+          "meltingPoint": 0.0,
+          "isCombusting": false,
+          "hasCombusted": false,
+          "combustionTicks": 100,
+          "electricallyConductive": false,
+          "frictionCoefficient": 0.1
+        },
+        "propDevice": null,
+        "propHeatSource": null,
+        "propCoolingSource": null,
+        "propElectricalConnection": null
+      }
+    ]
+  },
+  {
+    "task": "boil",
+    "variation": 0,
+    "task_description": "Task Description:\nYour task is to boil water. For compounds without a boiling point, combusting the substance is also acceptable. First, focus on the substance. Then, take actions that will cause it to change its state of matter.",
+    "initial_observation": "This room is called the hallway. In it, you see: \n\tthe agent\n\ta substance called air\n\ta picture\nYou also see:\n\tA door to the art studio (that is closed)\n\tA door to the bedroom (that is closed)\n\tA door to the greenhouse (that is closed)\n\tA door to the kitchen (that is closed)\n\tA door to the living room (that is closed)\n\tA door to the workshop (that is closed)",
+    "matches": [
+      {
+        "path": "$.contents.kitchen-17205.contents.stove-17217",
+        "name": "stove",
+        "uuid": "17217",
+        "isDeleted": false,
+        "propMaterial": null,
+        "propDevice": {
+          "isActivable": true,
+          "isActivated": false,
+          "isUsable": false,
+          "isBroken": false
+        },
+        "propHeatSource": {
+          "maxTemp": 260.0,
+          "curSetTemp": null
+        },
+        "propCoolingSource": null,
+        "propElectricalConnection": null
+      },
+      {
+        "path": "$.contents.kitchen-17205.contents.cupboard-17229.contents.metal pot-17235",
+        "name": "metal pot",
+        "uuid": "17235",
+        "isDeleted": false,
+        "propMaterial": {
+          "substanceName": "steel",
+          "color": "grey",
+          "temperatureC": 10.0,
+          "thermalConductivity": 1.0,
+          "stateOfMatter": "solid",
+          "boilingPoint": 2900.0,
+          "meltingPoint": 1400.0,
+          "isCombusting": false,
+          "hasCombusted": false,
+          "combustionTicks": 100,
+          "electricallyConductive": true,
+          "frictionCoefficient": 0.6
+        },
+        "propDevice": null,
+        "propHeatSource": null,
+        "propCoolingSource": null,
+        "propElectricalConnection": null
+      },
+      {
+        "path": "$.contents.kitchen-17205.contents.counter-17244.contents.bowl-17250.contents.potato-17262",
+        "name": "potato",
+        "uuid": "17262",
+        "isDeleted": false,
+        "propMaterial": null,
+        "propDevice": null,
+        "propHeatSource": null,
+        "propCoolingSource": null,
+        "propElectricalConnection": null
+      },
+      {
+        "path": "$.contents.kitchen-17205.contents.fridge-17220.contents.wood cup-17265.contents.orange juice-17268",
+        "name": "orange juice",
+        "uuid": "17268",
+        "isDeleted": false,
+        "propMaterial": {
+          "substanceName": "orange juice",
+          "color": "orange",
+          "temperatureC": 10.0,
+          "thermalConductivity": 0.5,
+          "stateOfMatter": "liquid",
+          "boilingPoint": 100.0,
+          "meltingPoint": 0.0,
+          "isCombusting": false,
+          "hasCombusted": false,
+          "combustionTicks": 100,
+          "electricallyConductive": false,
+          "frictionCoefficient": 0.1
+        },
+        "propDevice": null,
+        "propHeatSource": null,
+        "propCoolingSource": null,
+        "propElectricalConnection": null
+      },
+      {
+        "path": "$.contents.bathroom-17349.contents.toilet-17361.contents.water-17367",
+        "name": "water",
+        "uuid": "17367",
+        "isDeleted": false,
+        "propMaterial": {
+          "substanceName": "water",
+          "color": "clear",
+          "temperatureC": 10.0,
+          "thermalConductivity": 0.5,
+          "stateOfMatter": "liquid",
+          "boilingPoint": 100.0,
+          "meltingPoint": 0.0,
+          "isCombusting": false,
+          "hasCombusted": false,
+          "combustionTicks": 100,
+          "electricallyConductive": false,
+          "frictionCoefficient": 0.1
+        },
+        "propDevice": null,
+        "propHeatSource": null,
+        "propCoolingSource": null,
+        "propElectricalConnection": null
+      }
+    ]
+  },
+  {
+    "task": "power-component",
+    "variation": 0,
+    "task_description": "Task Description:\nYour task is to turn on the red light bulb. First, focus on the red light bulb. Then, create an electrical circuit that powers it on.",
+    "initial_observation": "This room is called the hallway. In it, you see: \n\tthe agent\n\ta substance called air\n\ta picture\nYou also see:\n\tA door to the art studio (that is closed)\n\tA door to the bedroom (that is closed)\n\tA door to the greenhouse (that is closed)\n\tA door to the kitchen (that is closed)\n\tA door to the living room (that is closed)\n\tA door to the workshop (that is closed)",
+    "matches": [
+      {
+        "path": "$.contents.workshop-17382.contents.table-17388.contents.switch-17407",
+        "name": "switch",
+        "uuid": "17407",
+        "isDeleted": false,
+        "propMaterial": null,
+        "propDevice": {
+          "isActivable": true,
+          "isActivated": false,
+          "isUsable": false,
+          "isBroken": false
+        },
+        "propHeatSource": null,
+        "propCoolingSource": null,
+        "propElectricalConnection": null
+      },
+      {
+        "path": "$.contents.workshop-17382.contents.table-17388.contents.violet light bulb-17395",
+        "name": "violet light bulb",
+        "uuid": "17395",
+        "isDeleted": false,
+        "propMaterial": null,
+        "propDevice": {
+          "isActivable": false,
+          "isActivated": false,
+          "isUsable": false,
+          "isBroken": false
+        },
+        "propHeatSource": null,
+        "propCoolingSource": null,
+        "propElectricalConnection": null
+      },
+      {
+        "path": "$.contents.workshop-17382.contents.table-17388.contents.blue wire-17406",
+        "name": "blue wire",
+        "uuid": "17406",
+        "isDeleted": false,
+        "propMaterial": {
+          "substanceName": "metal",
+          "color": "grey",
+          "temperatureC": 10.0,
+          "thermalConductivity": 1.0,
+          "stateOfMatter": "solid",
+          "boilingPoint": 2000.0,
+          "meltingPoint": 1000.0,
+          "isCombusting": false,
+          "hasCombusted": false,
+          "combustionTicks": 100,
+          "electricallyConductive": true,
+          "frictionCoefficient": 0.5
+        },
+        "propDevice": {
+          "isActivable": false,
+          "isActivated": false,
+          "isUsable": false,
+          "isBroken": false
+        },
+        "propHeatSource": null,
+        "propCoolingSource": null,
+        "propElectricalConnection": null
+      },
+      {
+        "path": "$.contents.workshop-17382.contents.table-17388.contents.black wire-17400",
+        "name": "black wire",
+        "uuid": "17400",
+        "isDeleted": false,
+        "propMaterial": {
+          "substanceName": "metal",
+          "color": "grey",
+          "temperatureC": 10.0,
+          "thermalConductivity": 1.0,
+          "stateOfMatter": "solid",
+          "boilingPoint": 2000.0,
+          "meltingPoint": 1000.0,
+          "isCombusting": false,
+          "hasCombusted": false,
+          "combustionTicks": 100,
+          "electricallyConductive": true,
+          "frictionCoefficient": 0.5
+        },
+        "propDevice": {
+          "isActivable": false,
+          "isActivated": false,
+          "isUsable": false,
+          "isBroken": false
+        },
+        "propHeatSource": null,
+        "propCoolingSource": null,
+        "propElectricalConnection": null
+      },
+      {
+        "path": "$.contents.workshop-17382.contents.table-17388.contents.yellow light bulb-17392",
+        "name": "yellow light bulb",
+        "uuid": "17392",
+        "isDeleted": false,
+        "propMaterial": null,
+        "propDevice": {
+          "isActivable": false,
+          "isActivated": false,
+          "isUsable": false,
+          "isBroken": false
+        },
+        "propHeatSource": null,
+        "propCoolingSource": null,
+        "propElectricalConnection": null
+      },
+      {
+        "path": "$.contents.workshop-17382.contents.table-17388.contents.green light bulb-17389",
+        "name": "green light bulb",
+        "uuid": "17389",
+        "isDeleted": false,
+        "propMaterial": null,
+        "propDevice": {
+          "isActivable": false,
+          "isActivated": false,
+          "isUsable": false,
+          "isBroken": false
+        },
+        "propHeatSource": null,
+        "propCoolingSource": null,
+        "propElectricalConnection": null
+      },
+      {
+        "path": "$.contents.workshop-17382.contents.table-17388.contents.orange wire-17403",
+        "name": "orange wire",
+        "uuid": "17403",
+        "isDeleted": false,
+        "propMaterial": {
+          "substanceName": "metal",
+          "color": "grey",
+          "temperatureC": 10.0,
+          "thermalConductivity": 1.0,
+          "stateOfMatter": "solid",
+          "boilingPoint": 2000.0,
+          "meltingPoint": 1000.0,
+          "isCombusting": false,
+          "hasCombusted": false,
+          "combustionTicks": 100,
+          "electricallyConductive": true,
+          "frictionCoefficient": 0.5
+        },
+        "propDevice": {
+          "isActivable": false,
+          "isActivated": false,
+          "isUsable": false,
+          "isBroken": false
+        },
+        "propHeatSource": null,
+        "propCoolingSource": null,
+        "propElectricalConnection": null
+      },
+      {
+        "path": "$.contents.workshop-17382.contents.table-17388.contents.battery-17410",
+        "name": "battery",
+        "uuid": "17410",
+        "isDeleted": false,
+        "propMaterial": null,
+        "propDevice": {
+          "isActivable": false,
+          "isActivated": true,
+          "isUsable": false,
+          "isBroken": false
+        },
+        "propHeatSource": null,
+        "propCoolingSource": null,
+        "propElectricalConnection": null
+      },
+      {
+        "path": "$.contents.workshop-17382.contents.red light bulb-364",
+        "name": "red light bulb",
+        "uuid": "364",
+        "isDeleted": false,
+        "propMaterial": null,
+        "propDevice": {
+          "isActivable": false,
+          "isActivated": false,
+          "isUsable": false,
+          "isBroken": false
+        },
+        "propHeatSource": null,
+        "propCoolingSource": null,
+        "propElectricalConnection": null
+      },
+      {
+        "path": "$.contents.workshop-17382.contents.blue light bulb-370",
+        "name": "blue light bulb",
+        "uuid": "370",
+        "isDeleted": false,
+        "propMaterial": null,
+        "propDevice": {
+          "isActivable": false,
+          "isActivated": false,
+          "isUsable": false,
+          "isBroken": false
+        },
+        "propHeatSource": null,
+        "propCoolingSource": null,
+        "propElectricalConnection": null
+      }
+    ]
+  }
+]

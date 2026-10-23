@@ -1,0 +1,89 @@
+{
+  "melt": {
+    "requested_actions": 34,
+    "run_a_executed": 32,
+    "run_b_executed": 32,
+    "run_a_stop_reason": "done_true",
+    "run_b_stop_reason": "done_true",
+    "run_a_stop_step": 32,
+    "run_b_stop_step": 32,
+    "run_a_stop_action": "examine ice",
+    "run_b_stop_action": "examine ice",
+    "initial_world_state_comparison": {
+      "available": true,
+      "equal": true,
+      "difference_count": 0,
+      "differences": []
+    },
+    "final_world_state_comparison": {
+      "available": true,
+      "equal": true,
+      "difference_count": 0,
+      "differences": []
+    },
+    "world_state_comparison_available": true,
+    "first_differing_step": null,
+    "identical_recorded_behavior": true,
+    "identical_recorded_world_trajectory": true,
+    "run_a_error": null,
+    "run_b_error": null
+  },
+  "boil": {
+    "requested_actions": 39,
+    "run_a_executed": 36,
+    "run_b_executed": 36,
+    "run_a_stop_reason": "done_true",
+    "run_b_stop_reason": "done_true",
+    "run_a_stop_step": 36,
+    "run_b_stop_step": 36,
+    "run_a_stop_action": "use thermometer in inventory on substance in metal pot",
+    "run_b_stop_action": "use thermometer in inventory on substance in metal pot",
+    "initial_world_state_comparison": {
+      "available": true,
+      "equal": true,
+      "difference_count": 0,
+      "differences": []
+    },
+    "final_world_state_comparison": {
+      "available": true,
+      "equal": true,
+      "difference_count": 0,
+      "differences": []
+    },
+    "world_state_comparison_available": true,
+    "first_differing_step": null,
+    "identical_recorded_behavior": true,
+    "identical_recorded_world_trajectory": true,
+    "run_a_error": null,
+    "run_b_error": null
+  },
+  "power-component": {
+    "requested_actions": 11,
+    "run_a_executed": 8,
+    "run_b_executed": 8,
+    "run_a_stop_reason": "done_true",
+    "run_b_stop_reason": "done_true",
+    "run_a_stop_step": 8,
+    "run_b_stop_step": 8,
+    "run_a_stop_action": "connect orange wire terminal 2 to anode in red light bulb",
+    "run_b_stop_action": "connect orange wire terminal 2 to anode in red light bulb",
+    "initial_world_state_comparison": {
+      "available": true,
+      "equal": true,
+      "difference_count": 0,
+      "differences": []
+    },
+    "final_world_state_comparison": {
+      "available": true,
+      "equal": true,
+      "difference_count": 0,
+      "differences": []
+    },
+    "world_state_comparison_available": true,
+    "first_differing_step": null,
+    "identical_recorded_behavior": true,
+    "identical_recorded_world_trajectory": true,
+    "run_a_error": null,
+    "run_b_error": null
+  }
+}

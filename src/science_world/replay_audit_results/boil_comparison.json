@@ -1,0 +1,26 @@
+{
+  "same_executed_step_count": true,
+  "run_a_executed": 36,
+  "run_b_executed": 36,
+  "same_stop_reason": true,
+  "same_stop_step": true,
+  "initial_state_comparison": {
+    "available": true,
+    "equal": true,
+    "difference_count": 0,
+    "differences": []
+  },
+  "final_state_comparison": {
+    "available": true,
+    "equal": true,
+    "difference_count": 0,
+    "differences": []
+  },
+  "step_differences": [],
+  "world_state_comparison_available": true,
+  "first_differing_step": null,
+  "identical_recorded_behavior": true,
+  "identical_initial_world_state": true,
+  "identical_final_world_state": true,
+  "identical_recorded_world_trajectory": true
+}
