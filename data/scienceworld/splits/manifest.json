@@ -1,0 +1,97 @@
+{
+  "inputs": [
+    "data/scienceworld/scienceworld_reversibility_v2_shared.jsonl"
+  ],
+  "seeds": {
+    "42": {
+      "train": {
+        "rows": 367,
+        "scenarios": 24,
+        "labels": {
+          "reversible": 230,
+          "irreversible": 121,
+          "partially_reversible": 3,
+          "inconclusive": 13
+        }
+      },
+      "validation": {
+        "rows": 52,
+        "scenarios": 3,
+        "labels": {
+          "reversible": 37,
+          "irreversible": 15
+        }
+      },
+      "test": {
+        "rows": 32,
+        "scenarios": 3,
+        "labels": {
+          "irreversible": 8,
+          "reversible": 18,
+          "inconclusive": 6
+        }
+      }
+    },
+    "43": {
+      "train": {
+        "rows": 375,
+        "scenarios": 24,
+        "labels": {
+          "reversible": 239,
+          "irreversible": 119,
+          "partially_reversible": 2,
+          "inconclusive": 15
+        }
+      },
+      "validation": {
+        "rows": 31,
+        "scenarios": 3,
+        "labels": {
+          "reversible": 18,
+          "irreversible": 11,
+          "inconclusive": 1,
+          "partially_reversible": 1
+        }
+      },
+      "test": {
+        "rows": 45,
+        "scenarios": 3,
+        "labels": {
+          "reversible": 28,
+          "irreversible": 14,
+          "inconclusive": 3
+        }
+      }
+    },
+    "44": {
+      "train": {
+        "rows": 363,
+        "scenarios": 24,
+        "labels": {
+          "reversible": 223,
+          "irreversible": 120,
+          "partially_reversible": 3,
+          "inconclusive": 17
+        }
+      },
+      "validation": {
+        "rows": 42,
+        "scenarios": 3,
+        "labels": {
+          "reversible": 28,
+          "irreversible": 13,
+          "inconclusive": 1
+        }
+      },
+      "test": {
+        "rows": 46,
+        "scenarios": 3,
+        "labels": {
+          "irreversible": 11,
+          "reversible": 34,
+          "inconclusive": 1
+        }
+      }
+    }
+  }
+}
