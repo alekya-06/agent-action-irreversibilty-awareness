@@ -1,0 +1,96 @@
+{
+  "inputs": [
+    "data/filesystem/filesystem_v3.jsonl",
+    "data/email_outbox/email_outbox_v3.jsonl",
+    "data/wallet/wallet_v3.jsonl"
+  ],
+  "seeds": {
+    "42": {
+      "train": {
+        "rows": 304,
+        "scenarios": 45,
+        "labels": {
+          "irreversible": 20,
+          "reversible": 219,
+          "partially_reversible": 65
+        }
+      },
+      "validation": {
+        "rows": 18,
+        "scenarios": 6,
+        "labels": {
+          "reversible": 7,
+          "partially_reversible": 7,
+          "irreversible": 4
+        }
+      },
+      "test": {
+        "rows": 38,
+        "scenarios": 6,
+        "labels": {
+          "irreversible": 1,
+          "reversible": 25,
+          "partially_reversible": 12
+        }
+      }
+    },
+    "43": {
+      "train": {
+        "rows": 286,
+        "scenarios": 45,
+        "labels": {
+          "irreversible": 18,
+          "reversible": 196,
+          "partially_reversible": 72
+        }
+      },
+      "validation": {
+        "rows": 38,
+        "scenarios": 6,
+        "labels": {
+          "reversible": 26,
+          "irreversible": 6,
+          "partially_reversible": 6
+        }
+      },
+      "test": {
+        "rows": 36,
+        "scenarios": 6,
+        "labels": {
+          "irreversible": 1,
+          "reversible": 29,
+          "partially_reversible": 6
+        }
+      }
+    },
+    "44": {
+      "train": {
+        "rows": 288,
+        "scenarios": 45,
+        "labels": {
+          "irreversible": 20,
+          "reversible": 200,
+          "partially_reversible": 68
+        }
+      },
+      "validation": {
+        "rows": 42,
+        "scenarios": 6,
+        "labels": {
+          "reversible": 28,
+          "irreversible": 4,
+          "partially_reversible": 10
+        }
+      },
+      "test": {
+        "rows": 30,
+        "scenarios": 6,
+        "labels": {
+          "reversible": 23,
+          "partially_reversible": 6,
+          "irreversible": 1
+        }
+      }
+    }
+  }
+}
