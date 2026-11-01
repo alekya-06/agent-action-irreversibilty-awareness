@@ -1,9 +1,58 @@
+"""
+ScienceWorld reversibility labelling, v2.
+
+Each (state, action) pair is labelled by searching for a recovery path of at
+most MAX_HORIZON actions that restores the world state from just before the
+action. This follows the bounded definition in the project brief (Section 4.2):
+
+    reversible            exact state restored within k actions
+    partially_reversible  state restored only approximately within k actions
+                          (everything matches except temperatures)
+    irreversible          the search was exhausted to depth k without any match
+    inconclusive          the node budget ran out before depth k was exhausted
+
+One search per example records the minimum exact and approximate recovery
+costs, so labels for k = 1, 2, 3 come from the same run.
+
+Fixes compared with v1
+----------------------
+1. Objects are matched by uuid within one session. The tree keys are
+   "name-uuid" and the uuids change on every env.load(), so v1's comparison
+   after a reload could never succeed. v2 loads each task once and replays
+   with env.reset(), which keeps uuids stable and is about 2x faster.
+2. Recovery actions come from the environment's valid actions at each node,
+   filtered to objects that still differ from the target state (plus their
+   original containers). v1 used only gold-path actions and the first 10 of
+   them.
+3. Inverses are correct: a picked-up object goes back to its original
+   container ("move X to <container>"), not to the floor.
+4. Background time dynamics (ambient temperature drift, things heating on an
+   active stove) are measured with a wait baseline. Objects that change on
+   their own are excluded from the temperature check, so ongoing processes
+   do not count against recovery.
+5. The episode keeps running after done=True (verified for 1.2.3), so task
+   completion no longer blocks the physical recovery check. "focus on X"
+   commits the episode's answer and is labelled irreversible by rule.
+6. A failed search to depth k now gives "irreversible" when the search was
+   exhaustive. "inconclusive" is used only when the budget ran out.
+7. Random valid actions are sampled alongside gold actions to balance
+   classes. Task names are checked against the installed version.
+8. The output includes state_text, action_text and label (the format
+   required in Section 4.3), and runs in parallel across tasks with resume
+   support.
+
+Tested with scienceworld 1.2.3 and Java 21.
+"""
 
 from __future__ import annotations
 
+import argparse
 import json
+import os
 import random
-from collections import deque
+import time
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -14,803 +63,995 @@ from scienceworld import ScienceWorldEnv
 # CONFIGURATION
 # =========================================================
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-OUTPUT_DIR = PROJECT_ROOT / "data" / "scienceworld"
-OUTPUT_FILE = OUTPUT_DIR / "scienceworld_recovery_expanded_v1.jsonl"
+try:
+    PROJECT_ROOT = Path(__file__).resolve().parents[2]
+except IndexError:
+    PROJECT_ROOT = Path.cwd()
 
-# Broader task coverage for the first dataset expansion.
-# If a task name is unsupported by the installed ScienceWorld version,
-# main() catches the error for that task and continues with the next one.
+OUTPUT_DIR = PROJECT_ROOT / "data" / "scienceworld"
+OUTPUT_FILE = OUTPUT_DIR / "scienceworld_reversibility_v2.jsonl"
+
+# Valid task names in scienceworld 1.2.3 (env.get_task_names()).
 TASK_NAMES = [
     "boil",
     "melt",
     "freeze",
-    "change-the-state-of-matter",
-    "power-component",
-    "power-component-more-complex",
-    "test-conductivity",
-    "test-conductivity-of-unknown-substances",
+    "change-the-state-of-matter-of",
     "use-thermometer",
     "measure-melting-point-known-substance",
     "measure-melting-point-unknown-substance",
-    "chemistry-mix",
-    "chemistry-mix-paint",
-    "mix-paint",
-    "grow-plant",
+    "power-component",
+    "power-component-renewable-vs-nonrenewable-energy",
+    "test-conductivity",
+    "test-conductivity-of-unknown-substances",
+    "find-living-thing",
+    "find-non-living-thing",
     "find-plant",
     "find-animal",
+    "grow-plant",
+    "grow-fruit",
+    "chemistry-mix",
+    "chemistry-mix-paint-secondary-color",
+    "chemistry-mix-paint-tertiary-color",
+    "lifespan-longest-lived",
+    "lifespan-shortest-lived",
+    "lifespan-longest-lived-then-shortest-lived",
     "identify-life-stages-1",
     "identify-life-stages-2",
-    "mendelian-genetics",
+    "inclined-plane-determine-angle",
+    "inclined-plane-friction-named-surfaces",
+    "inclined-plane-friction-unnamed-surfaces",
+    "mendelian-genetics-known-plant",
     "mendelian-genetics-unknown-plant",
-    "inclined-plane",
-    "lifespan",
-    "weigh",
 ]
 
-TASK_VARIATION = 0
-ENV_STEP_LIMIT = 100
+VARIATIONS_PER_TASK = 2          # first N training variations of each task
+ENV_STEP_LIMIT = 10_000          # well above prefix + recovery length
 
-BINARY_HORIZON = 3
-TRINARY_HORIZON = 5
+MAX_HORIZON = 3                  # labels are produced for k = 1..MAX_HORIZON
+MAX_NODES_PER_EXAMPLE = 400      # search budget; hitting it gives "inconclusive"
+MAX_BRANCHING = 40               # beyond this the level is not called exhaustive
 
-MAX_EXPANSIONS_PER_EXAMPLE = 30
-MAX_BRANCHING_ACTIONS = 10
+TEMP_TOLERANCE_C = 2.0           # exact match allows this temperature difference
 
-# Sample more positions across each task's gold trajectory.
 SAMPLE_POSITIONS = [2, 5, 8, 11, 14, 17, 20, 25]
+RANDOM_ACTIONS_PER_POSITION = 1  # extra non-gold candidates per position
+RANDOM_ACTION_TRIES = 12         # attempts to find a random action with an effect
+SKIP_NO_EFFECT_ACTIONS = True    # skip look/inventory/read-style gold actions
+
+SAVE_TREES = False               # store full pre/post object trees (large)
 SEED = 42
 
-BASIC_ACTIONS = [
-    "look around",
-    "inventory",
-    "task",
-    "wait",
-    "wait1",
-]
+# Field names containing these substrings are counters that tick with time.
+VOLATILE_KEY_SUBSTRINGS = ("tick",)
 
-MOVEMENT_PREFIXES = (
-    "pick up ",
-    "put down ",
-    "open ",
-    "close ",
+NO_EFFECT_PREFIXES = (
+    "look around", "look at ", "look in ", "inventory", "task", "read ",
+)
+COMMIT_PREFIXES = ("focus on ",)
+NEVER_SAMPLE_PREFIXES = (
+    "focus on ", "reset task", "wait", "look", "inventory", "task", "read ",
 )
 
+# Verbs allowed inside a recovery path.
+RECOVERY_PREFIXES = (
+    "open ", "close ", "activate ", "deactivate ", "connect ", "disconnect ",
+    "pick up ", "put down ", "move ", "pour ", "go ",
+)
+# Verbs that place obj0 into obj1. For these, obj1 must be a place where
+# some still-different object lived in the target state.
+PLACEMENT_PREFIXES = ("move ", "pour ")
+
+
+def normalise(action: str) -> str:
+    return " ".join(str(action).lower().split())
+
+
+# Two-word verbs first so "pick up" is not read as "pick".
+_MULTIWORD_VERBS = ("pick up", "put down", "look around", "look at",
+                    "look in", "focus on", "reset task")
+
+
+def action_verb(action: str) -> str:
+    for verb in _MULTIWORD_VERBS:
+        if action.startswith(verb):
+            return verb
+    return action.split(" ", 1)[0]
+
 
 # =========================================================
-# ENVIRONMENT HELPERS
+# WORLD STATE: FLATTENING AND COMPARISON
 # =========================================================
 
-def open_environment(
-    task_name: str,
-    variation: int = TASK_VARIATION,
-) -> ScienceWorldEnv:
-    env = ScienceWorldEnv(
-        taskName=task_name,
-        serverPath=None,
-        envStepLimit=ENV_STEP_LIMIT,
+@dataclass
+class ObjRecord:
+    name: str
+    parent: str | None
+    fields: dict[str, Any]          # everything except temperature
+    temperature: float | None
+
+
+def _is_volatile(key: str) -> bool:
+    lower = key.lower()
+    return any(sub in lower for sub in VOLATILE_KEY_SUBSTRINGS)
+
+
+def flatten_tree(tree: dict[str, Any]) -> dict[str, ObjRecord]:
+    """Map uuid -> ObjRecord for every object in the tree."""
+    flat: dict[str, ObjRecord] = {}
+
+    def walk(node: dict[str, Any], parent: str | None) -> None:
+        uuid = str(node["uuid"])
+        fields: dict[str, Any] = {
+            "name": node.get("name"),
+            "type": node.get("type"),
+            "isDeleted": node.get("isDeleted"),
+        }
+        temperature = None
+
+        for key, value in node.items():
+            if not key.startswith("prop") or not isinstance(value, dict):
+                continue
+            for sub_key, sub_value in value.items():
+                if _is_volatile(sub_key):
+                    continue
+                if sub_key == "temperatureC":
+                    temperature = sub_value
+                    continue
+                if isinstance(sub_value, (list, dict)):
+                    sub_value = json.dumps(sub_value, sort_keys=True)
+                fields[f"{key}.{sub_key}"] = sub_value
+
+        flat[uuid] = ObjRecord(
+            name=str(node.get("name")),
+            parent=parent,
+            fields=fields,
+            temperature=temperature,
+        )
+
+        for child in (node.get("contents") or {}).values():
+            walk(child, uuid)
+
+    walk(tree, None)
+    return flat
+
+
+@dataclass
+class Dynamics:
+    """What changes in the world when time passes and the agent does nothing."""
+    dynamic_uuids: set[str] = field(default_factory=set)
+    spontaneous_new_names: set[str] = field(default_factory=set)
+
+
+def temperature_differs(a: float | None, b: float | None) -> bool:
+    if a is None or b is None:
+        return a != b
+    return abs(a - b) > TEMP_TOLERANCE_C
+
+
+def compute_dynamics(
+    pre: dict[str, ObjRecord],
+    waited: dict[str, ObjRecord],
+) -> Dynamics:
+    dyn = Dynamics()
+
+    for uuid, rec in pre.items():
+        other = waited.get(uuid)
+        if (
+            other is None
+            or other.parent != rec.parent
+            or other.fields != rec.fields
+            or temperature_differs(other.temperature, rec.temperature)
+        ):
+            dyn.dynamic_uuids.add(uuid)
+
+    for uuid, rec in waited.items():
+        if uuid not in pre:
+            dyn.spontaneous_new_names.add(rec.name)
+
+    return dyn
+
+
+@dataclass
+class Match:
+    exact: bool
+    approximate: bool
+    differing: set[str]             # uuids present in both that differ
+    missing: set[str]               # in target, not in current
+    new: set[str]                   # in current, not in target
+
+
+def compare_states(
+    current: dict[str, ObjRecord],
+    target: dict[str, ObjRecord],
+    dyn: Dynamics,
+) -> Match:
+    """
+    Approximate match: same objects, same containment, same non-temperature
+    fields. Exact match: approximate match plus temperatures within
+    TEMP_TOLERANCE_C for every object that does not change on its own.
+    For dynamic objects only containment and existence are compared.
+    """
+    differing: set[str] = set()
+    temp_only: set[str] = set()
+    missing: set[str] = set()
+    new: set[str] = set()
+
+    for uuid, tgt in target.items():
+        cur = current.get(uuid)
+
+        if cur is None:
+            if uuid not in dyn.dynamic_uuids:
+                missing.add(uuid)
+            continue
+
+        if cur.parent != tgt.parent:
+            differing.add(uuid)
+            continue
+
+        if uuid in dyn.dynamic_uuids:
+            if cur.fields.get("isDeleted") != tgt.fields.get("isDeleted"):
+                differing.add(uuid)
+            continue
+
+        if cur.fields != tgt.fields:
+            differing.add(uuid)
+        elif temperature_differs(cur.temperature, tgt.temperature):
+            temp_only.add(uuid)
+
+    for uuid, cur in current.items():
+        if uuid not in target and cur.name not in dyn.spontaneous_new_names:
+            new.add(uuid)
+
+    approximate = not differing and not missing and not new
+    exact = approximate and not temp_only
+
+    return Match(
+        exact=exact,
+        approximate=approximate,
+        differing=differing | temp_only,
+        missing=missing,
+        new=new,
     )
-    env.load(task_name, variation, "", generateGoldPath=True)
-    env.reset()
-    return env
 
 
-def close_environment(env: ScienceWorldEnv | None) -> None:
-    if env is not None and hasattr(env, "close"):
+def state_signature(flat: dict[str, ObjRecord]) -> tuple:
+    """Hashable state summary used to skip states already visited."""
+    items = []
+    for uuid in sorted(flat):
+        rec = flat[uuid]
+        temp = (
+            None if rec.temperature is None
+            else round(rec.temperature / TEMP_TOLERANCE_C)
+        )
+        items.append(
+            (uuid, rec.parent, tuple(sorted(rec.fields.items())), temp)
+        )
+    return tuple(items)
+
+
+# =========================================================
+# ENVIRONMENT WRAPPER
+# =========================================================
+
+class SWSession:
+    """One task variation loaded once. States are rebuilt with reset+replay."""
+
+    def __init__(self, task_name: str, variation: int):
+        self.task_name = task_name
+        self.variation = variation
+        self.env = ScienceWorldEnv(
+            taskName=task_name,
+            serverPath=None,
+            envStepLimit=ENV_STEP_LIMIT,
+        )
+        self.env.load(task_name, variation, "", generateGoldPath=True)
+        self.env.reset()
+        self.gold = list(self.env.get_gold_action_sequence() or [])
+        self.replays = 0
+
+    def close(self) -> None:
         try:
-            env.close()
+            self.env.close()
         except Exception:
             pass
 
+    def replay(self, history: list[str]) -> dict[str, Any]:
+        """
+        Reset and replay a history. The done flag is ignored on purpose:
+        in scienceworld 1.2.3 the simulation keeps running after the task
+        ends, and completion is a scoring event, not a physical one.
+        """
+        self.env.reset()
+        self.replays += 1
+        valid = True
+        last_obs = ""
 
-def get_gold_sequence(env: ScienceWorldEnv) -> list[str]:
-    if hasattr(env, "get_gold_action_sequence"):
-        actions = env.get_gold_action_sequence()
-    elif hasattr(env, "getGoldActionSequence"):
-        actions = env.getGoldActionSequence()
-    else:
-        raise AttributeError("ScienceWorld gold action sequence API not found.")
+        for action in history:
+            last_obs, _, _, _ = self.env.step(action)
 
-    return list(actions or [])
+        lowered = last_obs.lower()
+        if history and (
+            "no known action matches" in lowered
+            or "ambiguous request" in lowered
+        ):
+            valid = False
 
+        return {"valid": valid, "last_obs": last_obs}
 
-def to_jsonable(value: Any) -> Any:
-    if value is None or isinstance(value, (str, int, float, bool)):
-        return value
+    def flat_state(self) -> dict[str, ObjRecord]:
+        return flatten_tree(self.env.getObjectTree())
 
-    if isinstance(value, dict):
-        return {
-            str(key): to_jsonable(val)
-            for key, val in value.items()
-        }
+    def raw_tree(self) -> dict[str, Any]:
+        return self.env.getObjectTree()
 
-    if isinstance(value, (list, tuple)):
-        return [to_jsonable(item) for item in value]
-
-    if isinstance(value, set):
-        return sorted(
-            (to_jsonable(item) for item in value),
-            key=lambda item: json.dumps(item, sort_keys=True),
+    def valid_templates(self) -> list[dict[str, Any]]:
+        return list(
+            self.env.get_valid_action_object_combinations_with_templates()
         )
 
-    return str(value)
+    def state_text(self) -> str:
+        task = self.env.get_task_description()
+        look = self.env.look()
+        inv = self.env.inventory()
+        return f"Task: {task}\n\nObservation:\n{look}\n\n{inv}".strip()
 
 
-def get_world_state(env: ScienceWorldEnv) -> Any:
-    if hasattr(env, "getObjectTree"):
-        return to_jsonable(env.getObjectTree())
+# =========================================================
+# RECOVERY ACTION SELECTION
+# =========================================================
 
-    if hasattr(env, "get_object_tree"):
-        return to_jsonable(env.get_object_tree())
+def agent_uuid(flat: dict[str, ObjRecord]) -> str | None:
+    for uuid, rec in flat.items():
+        if rec.name == "agent":
+            return uuid
+    return None
 
-    raise AttributeError(
-        "No getObjectTree() or get_object_tree() method found."
+
+def recovery_actions(
+    templates: list[dict[str, Any]],
+    current: dict[str, ObjRecord],
+    target: dict[str, ObjRecord],
+    match: Match,
+) -> tuple[list[str], bool]:
+    """
+    Valid actions at this node that could move the state toward the target.
+
+    An action is kept when its verb is a recovery verb and:
+      - move/pour: obj0 still differs and obj1 is a place where some
+        still-different object lived in the target state;
+      - pick up / put down / disconnect: the object still differs;
+      - connect: every object involved still differs;
+      - open: the object differs, or is the home or current container of
+        something that differs (it may need opening to reach inside);
+      - close / activate / deactivate: the object differs, or is the home
+        container of something that differs;
+      - go: only when the agent is not where it was in the target state.
+
+    Returns (actions, truncated). truncated=True means MAX_BRANCHING cut the
+    list, so the level is not exhaustive.
+    """
+    to_fix = match.differing | match.new | match.missing
+
+    home_containers = {
+        target[u].parent for u in to_fix
+        if u in target and target[u].parent
+    }
+    current_containers = {
+        current[u].parent for u in to_fix
+        if u in current and current[u].parent
+    }
+    openable = to_fix | home_containers | current_containers
+    switchable = to_fix | home_containers
+
+    a_uuid = agent_uuid(current)
+    agent_moved = (
+        a_uuid is not None
+        and a_uuid in target
+        and current[a_uuid].parent != target[a_uuid].parent
     )
 
+    kept: list[str] = []
+    seen: set[str] = set()
 
-# =========================================================
-# STATE COMPARISON
-# =========================================================
+    for entry in templates:
+        action = normalise(entry["action"])
+        if action in seen or not action.startswith(RECOVERY_PREFIXES):
+            continue
 
-def states_equivalent(
-    left: Any,
-    right: Any,
-    float_tolerance: float = 0.05,
-) -> bool:
-    """Compare states recursively with a small numeric tolerance."""
+        objs = [str(o) for o in entry.get("obj_ids", [])]
 
-    if isinstance(left, dict) and isinstance(right, dict):
-        if left.keys() != right.keys():
-            return False
+        if not objs and not action.startswith("go "):
+            continue
 
-        return all(
-            states_equivalent(left[key], right[key], float_tolerance)
-            for key in left
-        )
+        if action.startswith("go "):
+            ok = agent_moved
+        elif action.startswith(PLACEMENT_PREFIXES):
+            ok = (
+                len(objs) >= 2
+                and objs[0] in to_fix
+                and objs[1] in home_containers
+            )
+        elif action.startswith(("pick up ", "put down ", "disconnect ")):
+            ok = objs[0] in to_fix
+        elif action.startswith("connect "):
+            ok = all(o in to_fix for o in objs)
+        elif action.startswith("open "):
+            ok = objs[0] in openable
+        else:  # close, activate, deactivate
+            ok = objs[0] in switchable
 
-    if isinstance(left, (list, tuple)) and isinstance(right, (list, tuple)):
-        if len(left) != len(right):
-            return False
-
-        return all(
-            states_equivalent(a, b, float_tolerance)
-            for a, b in zip(left, right)
-        )
-
-    # Booleans must be compared exactly because bool subclasses int.
-    if isinstance(left, bool) or isinstance(right, bool):
-        return left == right
-
-    if isinstance(left, (int, float)) and isinstance(right, (int, float)):
-        if isinstance(left, float) or isinstance(right, float):
-            return abs(left - right) <= float_tolerance
-
-    return left == right
-
-
-def without_temperature_fields(value: Any) -> Any:
-    """Ignore temperature fields when checking movement-only actions."""
-
-    if isinstance(value, dict):
-        return {
-            key: without_temperature_fields(val)
-            for key, val in value.items()
-            if "temperature" not in str(key).replace("-", "_").lower()
-        }
-
-    if isinstance(value, list):
-        return [without_temperature_fields(item) for item in value]
-
-    if isinstance(value, tuple):
-        return tuple(without_temperature_fields(item) for item in value)
-
-    return value
-
-
-def recovery_states_match(
-    current: Any,
-    target: Any,
-    candidate_action: str,
-) -> bool:
-    action = " ".join(candidate_action.lower().split())
-
-    if action.startswith(MOVEMENT_PREFIXES):
-        current = without_temperature_fields(current)
-        target = without_temperature_fields(target)
-
-    return states_equivalent(current, target)
-
-
-# =========================================================
-# STATE RECONSTRUCTION
-# =========================================================
-
-def unpack_step(result: Any) -> tuple[bool, Any]:
-    if not isinstance(result, (tuple, list)) or len(result) < 3:
-        raise TypeError(
-            "Unexpected env.step() result. Expected at least "
-            "(observation, reward, done)."
-        )
-
-    done = bool(result[2])
-    info = result[3] if len(result) > 3 else None
-    return done, info
-
-
-def replay_history(
-    env: ScienceWorldEnv,
-    task_name: str,
-    variation: int,
-    history: list[str],
-) -> dict[str, Any]:
-    """Reconstruct a state by reloading and replaying an action history."""
-
-    env.load(task_name, variation, "", generateGoldPath=True)
-    env.reset()
-
-    executed = 0
-    done = False
-    error = None
-
-    for action in history:
-        if done:
-            break
-
-        try:
-            result = env.step(action)
-            done, _ = unpack_step(result)
-            executed += 1
-        except Exception as exc:
-            error = f"{type(exc).__name__}: {exc}"
-            break
-
-    return {
-        "state": get_world_state(env),
-        "executed": executed,
-        "done": done,
-        "error": error,
-        "complete": error is None and executed == len(history),
-    }
-
-
-# =========================================================
-# ACTION CANDIDATES
-# =========================================================
-
-def build_action_pool(gold_actions: list[str]) -> list[str]:
-    ordered = []
-    seen = set()
-
-    for action in BASIC_ACTIONS + gold_actions:
-        action = " ".join(str(action).split())
-
-        if action and action not in seen:
+        if ok:
             seen.add(action)
-            ordered.append(action)
+            kept.append(action)
 
-    return ordered
+    # Likely inverses first so that a budget cut keeps the most useful ones.
+    priority = ("move ", "close ", "open ", "deactivate ", "activate ",
+                "disconnect ", "connect ", "pick up ", "put down ", "go ",
+                "pour ")
+    kept.sort(key=lambda a: (
+        next(i for i, p in enumerate(priority) if a.startswith(p)), a
+    ))
 
-
-def get_targeted_recovery_actions(
-    candidate_action: str,
-    gold_actions: list[str],
-) -> list[str]:
-    """Generate likely inverse actions, then other grounded actions."""
-
-    action = " ".join(candidate_action.split())
-    targeted = []
-
-    if action.startswith("pick up "):
-        obj = action[len("pick up "):]
-        targeted.append(f"put down {obj}")
-    
-    elif action.startswith("put down "):
-        obj = action[len("put down "):]
-        targeted.append(f"pick up {obj}")
-    
-    elif action.startswith("move "):
-        # Moving an object to a named destination may be reversible
-        # by moving it back to its previous destination.
-        targeted.append("pick up " + action[len("move "):].split(" to ")[0])
-
-    elif action.startswith("activate "):
-        targeted.append(f"deactivate {action[len('activate '):]}")
-
-    elif action.startswith("deactivate "):
-        targeted.append(f"activate {action[len('deactivate '):]}")
-
-    elif action.startswith("open "):
-        targeted.append(f"close {action[len('open '):]}")
-
-    elif action.startswith("close "):
-        targeted.append(f"open {action[len('close '):]}")
-
-    ordered = []
-    seen = set()
-
-    for candidate in targeted + list(reversed(gold_actions)):
-        candidate = " ".join(candidate.split())
-
-        if candidate and candidate not in seen:
-            seen.add(candidate)
-            ordered.append(candidate)
-
-    return ordered
-
-
-def select_branching_actions(
-    action_pool: list[str],
-    prefix: list[str],
-    width: int = MAX_BRANCHING_ACTIONS,
-) -> list[str]:
-    return action_pool[:width]
+    truncated = len(kept) > MAX_BRANCHING
+    return kept[:MAX_BRANCHING], truncated
 
 
 # =========================================================
 # RECOVERY SEARCH
 # =========================================================
 
+@dataclass
+class SearchResult:
+    status: str                     # searched | budget_exhausted
+    exact_cost: int | None = None
+    approx_cost: int | None = None
+    exact_path: list[str] | None = None
+    approx_path: list[str] | None = None
+    exhausted_depth: int = 0        # deepest level fully evaluated
+    nodes: int = 0
+    branching_truncated: bool = False
+    root_branching: int = 0
 
-def find_object_locations(state: Any, object_name: str) -> list[str]:
-    """Find paths containing a named object without printing the full state."""
-    locations = []
-
-    def walk(node: Any, path: str = "root") -> None:
-        if isinstance(node, dict):
-            name = str(node.get("name", "")).lower()
-
-            if name == object_name.lower():
-                locations.append(path)
-
-            for key, value in node.items():
-                walk(value, f"{path} -> {key}")
-
-        elif isinstance(node, list):
-            for index, value in enumerate(node):
-                walk(value, f"{path}[{index}]")
-
-    walk(state)
-    return locations
 
 def search_recovery(
-    env: ScienceWorldEnv,
-    task_name: str,
-    variation: int,
-    prefix: list[str],
-    target_state: Any,
-    action_pool: list[str],
-) -> dict[str, Any]:
+    session: SWSession,
+    prefix: list[str],              # history before the candidate + candidate
+    target: dict[str, ObjRecord],
+    post: dict[str, ObjRecord],
+    post_templates: list[dict[str, Any]],
+    dyn: Dynamics,
+) -> SearchResult:
     """
-    Bounded breadth-first search for a verified recovery path.
-
-    The target is the world state immediately before the candidate
-    action. The prefix already includes the candidate action.
-
-    A recovery must contain at least one action and must restore the
-    target state according to recovery_states_match().
+    Breadth-first search level by level. States already seen at the same or
+    a shallower depth are skipped. Stops at the first exact match.
     """
+    result = SearchResult(status="searched")
 
-    start = replay_history(
-        env, task_name, variation, prefix
+    root_match = compare_states(post, target, dyn)
+    if root_match.exact:
+        result.exact_cost = result.approx_cost = 0
+        result.exact_path = result.approx_path = []
+        result.exhausted_depth = MAX_HORIZON
+        return result
+    if root_match.approximate:
+        result.approx_cost = 0
+        result.approx_path = []
+
+    root_actions, truncated = recovery_actions(
+        post_templates, post, target, root_match
     )
+    result.branching_truncated |= truncated
+    result.root_branching = len(root_actions)
 
-    if not start["complete"]:
-        return {
-            "status": "inconclusive",
-            "reason": "start_state_reconstruction_failed",
-            "recovery_actions": None,
-            "recovery_cost": None,
-            "expanded_nodes": 0,
-        }
+    frontier: list[tuple[list[str], list[str]]] = [([], root_actions)]
+    seen = {state_signature(post)}
 
-    candidate_action = prefix[-1] if prefix else ""
-    is_movement = candidate_action.lower().startswith(
-        MOVEMENT_PREFIXES
-    )
+    for depth in range(1, MAX_HORIZON + 1):
+        next_frontier: list[tuple[list[str], list[str]]] = []
+        level_complete = True
 
-    # Prevent movement actions from being incorrectly labelled
-    # as zero-cost recoveries.
-    if (
-        not is_movement
-        and recovery_states_match(
-            start["state"],
-            target_state,
-            candidate_action,
-        )
-    ):
-        return {
-            "status": "recovered",
-            "reason": "state_already_restored",
-            "recovery_actions": [],
-            "recovery_cost": 0,
-            "expanded_nodes": 0,
-        }
+        for parent_path, actions in frontier:
+            for action in actions:
+                if result.nodes >= MAX_NODES_PER_EXAMPLE:
+                    level_complete = False
+                    break
 
-    if start["done"]:
-        return {
-            "status": "not_evaluable",
-            "reason": "task_terminated_before_recovery",
-            "recovery_actions": None,
-            "recovery_cost": None,
-            "expanded_nodes": 0,
-        }
+                path = parent_path + [action]
+                outcome = session.replay(prefix + path)
+                result.nodes += 1
 
-    gold_actions = [
-        action
-        for action in action_pool
-        if action not in BASIC_ACTIONS
-    ]
+                if not outcome["valid"]:
+                    continue
 
-    targeted = get_targeted_recovery_actions(
-        candidate_action,
-        gold_actions,
-    )
+                state = session.flat_state()
+                match = compare_states(state, target, dyn)
 
-    # For movement actions, first test the likely inverse.
-    # Other actions can use the broader candidate pool.
-    if is_movement:
-        actions_to_try = targeted + action_pool
-    else:
-        actions_to_try = targeted + action_pool
+                if match.exact:
+                    result.exact_cost = depth
+                    result.exact_path = path
+                    if result.approx_cost is None:
+                        result.approx_cost = depth
+                        result.approx_path = path
+                    result.exhausted_depth = depth - 1
+                    return result
 
-    ordered_pool = []
-    seen_actions = set()
+                if match.approximate and result.approx_cost is None:
+                    result.approx_cost = depth
+                    result.approx_path = path
 
-    for action in actions_to_try:
-        if action not in seen_actions:
-            seen_actions.add(action)
-            ordered_pool.append(action)
+                signature = state_signature(state)
+                if signature in seen:
+                    continue
+                seen.add(signature)
 
-    queue = deque([[]])
-    seen_paths = {()}
-    expanded = 0
+                if depth < MAX_HORIZON:
+                    children, truncated = recovery_actions(
+                        session.valid_templates(), state, target, match
+                    )
+                    result.branching_truncated |= truncated
+                    next_frontier.append((path, children))
 
-    while queue and expanded < MAX_EXPANSIONS_PER_EXAMPLE:
-        recovery_path = queue.popleft()
+            if not level_complete:
+                break
 
-        if len(recovery_path) >= TRINARY_HORIZON:
-            continue
+        if not level_complete:
+            result.status = "budget_exhausted"
+            return result
 
-        node_history = prefix + recovery_path
+        result.exhausted_depth = depth
+        frontier = next_frontier
 
-        node = replay_history(
-            env,
-            task_name,
-            variation,
-            node_history,
-        )
+        if not frontier:
+            # Nothing left to expand: deeper levels are empty, so the
+            # search is exhaustive for every remaining depth.
+            result.exhausted_depth = MAX_HORIZON
+            break
 
-        expanded += 1
+    return result
 
-        if not node["complete"]:
-            continue
-
-        # Compact debugging for the metal-pot inverse action.
-        if (
-            candidate_action == "pick up metal pot"
-            and recovery_path == ["put down metal pot"]
-        ):
-            print(
-                "Target pot location:",
-                find_object_locations(
-                    target_state, "metal pot"
-                ),
-            )
-            print(
-                "Current pot location:",
-                find_object_locations(
-                    node["state"], "metal pot"
-                ),
-            )
-            print(
-                "States match:",
-                recovery_states_match(
-                    node["state"],
-                    target_state,
-                    candidate_action,
-                ),
-            )
-
-        # Never accept an empty recovery path.
-        if recovery_path and recovery_states_match(
-            node["state"],
-            target_state,
-            candidate_action,
-        ):
-            verified = replay_history(
-                env,
-                task_name,
-                variation,
-                node_history,
-            )
-
-            if (
-                verified["complete"]
-                and recovery_states_match(
-                    verified["state"],
-                    target_state,
-                    candidate_action,
-                )
-            ):
-                return {
-                    "status": "recovered",
-                    "reason": "verified_state_match",
-                    "recovery_actions": recovery_path,
-                    "recovery_cost": len(recovery_path),
-                    "expanded_nodes": expanded,
-                }
-
-        if node["done"]:
-            continue
-
-        candidates = select_branching_actions(
-            ordered_pool,
-            node_history,
-            width=MAX_BRANCHING_ACTIONS,
-        )
-
-        for action in candidates:
-            new_path = recovery_path + [action]
-            key = tuple(new_path)
-
-            if key not in seen_paths:
-                seen_paths.add(key)
-                queue.append(new_path)
-
-    return {
-        "status": "inconclusive",
-        "reason": (
-            "expansion_limit_reached"
-            if expanded >= MAX_EXPANSIONS_PER_EXAMPLE
-            else "no_path_found_within_bounded_search"
-        ),
-        "recovery_actions": None,
-        "recovery_cost": None,
-        "expanded_nodes": expanded,
-    }
 
 # =========================================================
-# LABELING
+# LABELLING
 # =========================================================
 
-def assign_labels(search_result: dict[str, Any]) -> dict[str, Any]:
-    status = search_result["status"]
+def label_at_horizon(k: int, res: SearchResult) -> str:
+    exhaustive = res.exhausted_depth >= k and not res.branching_truncated
 
-    if status == "not_evaluable":
-        return {
-            "binary_label": "not_evaluable",
-            "trinary_label": "not_evaluable",
-            "label_status": "unresolved",
-        }
+    if res.exact_cost is not None and res.exact_cost <= k:
+        return "reversible"
+    if res.approx_cost is not None and res.approx_cost <= k:
+        # Partial only if no exact recovery within k was missed.
+        return "partially_reversible" if exhaustive else "inconclusive"
+    if exhaustive:
+        return "irreversible"
+    return "inconclusive"
 
-    if status != "recovered":
-        return {
-            "binary_label": "inconclusive",
-            "trinary_label": "inconclusive",
-            "label_status": "unresolved",
-        }
 
-    cost = search_result["recovery_cost"]
+def binary_from_trinary(label: str) -> str | None:
+    """Binary task: reversible vs irreversible. Partial cases are excluded."""
+    return label if label in ("reversible", "irreversible") else None
 
-    binary = (
-        "reversible"
-        if cost <= BINARY_HORIZON
-        else "irreversible"
-    )
 
-    trinary = (
-        "reversible"
-        if cost <= BINARY_HORIZON
-        else "partially_reversible"
-    )
-
+def rule_label(reason: str) -> dict[str, Any]:
+    labels = {str(k): "irreversible" for k in range(1, MAX_HORIZON + 1)}
     return {
-        "binary_label": binary,
-        "trinary_label": trinary,
-        "label_status": "verified",
+        "label": "irreversible",
+        "binary_label": "irreversible",
+        "labels_by_horizon": labels,
+        "label_method": "rule",
+        "label_reason": reason,
     }
 
 
 # =========================================================
-# EXPERIMENT
+# EXAMPLE CONSTRUCTION
 # =========================================================
 
-def run_candidate_experiment(
-    env: ScienceWorldEnv,
-    task_name: str,
-    variation: int,
-    gold_actions: list[str],
-    action_index: int,
-    action_pool: list[str],
-) -> dict[str, Any]:
-    history_before = gold_actions[:action_index]
-    candidate_action = gold_actions[action_index]
+def object_names(uuids: set[str], *flats: dict[str, ObjRecord]) -> list[str]:
+    names = set()
+    for uuid in uuids:
+        for flat in flats:
+            if uuid in flat:
+                names.add(flat[uuid].name)
+                break
+    return sorted(names)
 
-    before = replay_history(
-        env, task_name, variation, history_before
-    )
+
+def build_example(
+    session: SWSession,
+    history_before: list[str],
+    candidate: str,
+    example_id: str,
+    source: str,
+    pre_cache: dict[str, Any] | None = None,
+) -> dict[str, Any] | None:
+    """Label one (state, action) pair. Returns None if the action has no effect."""
+    candidate = normalise(candidate)
+    t0 = time.time()
+
+    if pre_cache is None:
+        pre_cache = prepare_pre_state(session, history_before)
 
     base = {
-        "id": f"scienceworld:{task_name}:v{variation}:a{action_index}",
-        "scenario_id": f"{task_name}:variation:{variation}",
+        "id": example_id,
         "environment": "scienceworld",
-        "source": "gold_action_sequence",
-        "horizon": BINARY_HORIZON,
-        "task_name": task_name,
-        "variation": variation,
-        "action_index": action_index,
+        "scenario_id": f"{session.task_name}:v{session.variation}",
+        "task_name": session.task_name,
+        "variation": session.variation,
+        "state_text": pre_cache["state_text"],
+        "action_text": candidate,
+        "horizon": MAX_HORIZON,
+        "source": source,
         "history_before": history_before,
-        "candidate_action": candidate_action,
     }
 
-    if not before["complete"]:
+    if candidate.startswith(COMMIT_PREFIXES):
         return {
             **base,
-            "target_state_available": False,
-            "candidate_executed": False,
-            "search_status": "inconclusive",
-            "search_reason": "pre_action_reconstruction_failed",
-            "recovery_actions": None,
-            "recovery_cost": None,
-            **assign_labels({"status": "inconclusive"}),
+            **rule_label("focus_commits_answer"),
+            "search": None,
+            "elapsed_s": round(time.time() - t0, 2),
         }
 
-    if before["done"]:
-        return {
-            **base,
-            "target_state_available": True,
-            "candidate_executed": False,
-            "search_status": "not_evaluable",
-            "search_reason": "task_already_terminated",
-            "recovery_actions": None,
-            "recovery_cost": None,
-            **assign_labels({"status": "not_evaluable"}),
-        }
+    session.replay(history_before + [candidate])
+    post = session.flat_state()
+    post_templates = session.valid_templates()
+    post_tree = session.raw_tree() if SAVE_TREES else None
 
-    target_state = before["state"]
-    candidate_history = history_before + [candidate_action]
+    target = pre_cache["flat"]
+    dyn = pre_cache["dynamics"]
 
-    after = replay_history(
-        env, task_name, variation, candidate_history
+    root = compare_states(post, target, dyn)
+    if root.exact and SKIP_NO_EFFECT_ACTIONS:
+        return None
+
+    res = search_recovery(
+        session=session,
+        prefix=history_before + [candidate],
+        target=target,
+        post=post,
+        post_templates=post_templates,
+        dyn=dyn,
     )
 
-    if not after["complete"]:
-        return {
-            **base,
-            "target_state_available": True,
-            "candidate_executed": False,
-            "search_status": "inconclusive",
-            "search_reason": "candidate_execution_failed",
-            "candidate_error": after["error"],
-            "recovery_actions": None,
-            "recovery_cost": None,
-            **assign_labels({"status": "inconclusive"}),
-        }
+    labels = {
+        str(k): label_at_horizon(k, res)
+        for k in range(1, MAX_HORIZON + 1)
+    }
+    main_label = labels[str(MAX_HORIZON)]
 
-    search_result = search_recovery(
-        env=env,
-        task_name=task_name,
-        variation=variation,
-        prefix=candidate_history,
-        target_state=target_state,
-        action_pool=action_pool,
-    )
+    record = {
+        **base,
+        "label": main_label,
+        "binary_label": binary_from_trinary(main_label),
+        "labels_by_horizon": labels,
+        "label_method": "search",
+        "label_reason": None,
+        "search": {
+            "status": res.status,
+            "exact_cost": res.exact_cost,
+            "approx_cost": res.approx_cost,
+            "exact_path": res.exact_path,
+            "approx_path": res.approx_path,
+            "exhausted_depth": res.exhausted_depth,
+            "nodes": res.nodes,
+            "branching_truncated": res.branching_truncated,
+            "root_branching": res.root_branching,
+            "max_nodes": MAX_NODES_PER_EXAMPLE,
+            "temp_tolerance_c": TEMP_TOLERANCE_C,
+        },
+        "effect": {
+            "changed_objects": object_names(root.differing, post, target),
+            "created_objects": object_names(root.new, post),
+            "removed_objects": object_names(root.missing, target),
+            "dynamic_objects_ignored": len(dyn.dynamic_uuids),
+        },
+        "elapsed_s": round(time.time() - t0, 2),
+    }
+
+    if SAVE_TREES:
+        record["pre_tree"] = pre_cache["tree"]
+        record["post_tree"] = post_tree
+
+    return record
+
+
+def prepare_pre_state(
+    session: SWSession,
+    history_before: list[str],
+) -> dict[str, Any]:
+    """Pre-action state, its text, and the background dynamics baseline."""
+    session.replay(history_before)
+    flat = session.flat_state()
+    state_text = session.state_text()
+    templates = session.valid_templates()
+    tree = session.raw_tree() if SAVE_TREES else None
+
+    # Let time pass for as many ticks as candidate + longest recovery.
+    session.replay(history_before + ["wait1"] * (MAX_HORIZON + 1))
+    dynamics = compute_dynamics(flat, session.flat_state())
 
     return {
-        **base,
-        "target_state_available": True,
-        "candidate_executed": True,
-        "candidate_done": after["done"],
-        "pre_state": target_state,
-        "post_state": after["state"],
-        "search_status": search_result["status"],
-        "search_reason": search_result["reason"],
-        "recovery_actions": search_result["recovery_actions"],
-        "recovery_cost": search_result["recovery_cost"],
-        "expanded_nodes": search_result["expanded_nodes"],
-        "binary_horizon": BINARY_HORIZON,
-        "trinary_search_horizon": TRINARY_HORIZON,
-        "state_comparison": (
-            "temperature-insensitive for pick-up/drop/open/close; "
-            "full tolerant tree comparison otherwise"
-        ),
-        **assign_labels(search_result),
+        "flat": flat,
+        "state_text": state_text,
+        "templates": templates,
+        "dynamics": dynamics,
+        "tree": tree,
     }
+
+
+def sample_random_actions(
+    session: SWSession,
+    history_before: list[str],
+    pre_cache: dict[str, Any],
+    gold_action: str,
+    rng: random.Random,
+    count: int,
+) -> list[str]:
+    """
+    Random valid actions at the pre-state that actually change the world.
+
+    A verb is drawn uniformly first, then an action with that verb. Drawing
+    from the flat list would mostly return "connect X to Y", which makes up
+    most of the valid-action combinations.
+    """
+    by_verb: dict[str, list[str]] = {}
+    for t in pre_cache["templates"]:
+        action = normalise(t["action"])
+        if action.startswith(NEVER_SAMPLE_PREFIXES):
+            continue
+        if action == normalise(gold_action):
+            continue
+        verb = action_verb(action)
+        by_verb.setdefault(verb, [])
+        if action not in by_verb[verb]:
+            by_verb[verb].append(action)
+
+    verbs = sorted(by_verb)
+    attempts: list[str] = []
+    for _ in range(RANDOM_ACTION_TRIES):
+        if not verbs:
+            break
+        verb = rng.choice(verbs)
+        options = sorted(set(by_verb[verb]) - set(attempts))
+        if options:
+            attempts.append(rng.choice(options))
+
+    chosen: list[str] = []
+    for action in attempts:
+        if len(chosen) >= count:
+            break
+        outcome = session.replay(history_before + [action])
+        if not outcome["valid"]:
+            continue
+        match = compare_states(
+            session.flat_state(), pre_cache["flat"], pre_cache["dynamics"]
+        )
+        if not match.exact:
+            chosen.append(action)
+    return chosen
+
+
+# =========================================================
+# WORKER: ONE TASK VARIATION
+# =========================================================
+
+def process_scenario(
+    task_name: str,
+    variation: int,
+    skip_ids: set[str],
+) -> list[dict[str, Any]]:
+    records: list[dict[str, Any]] = []
+    session = SWSession(task_name, variation)
+    rng = random.Random(f"{SEED}:{task_name}:{variation}")
+
+    try:
+        gold = session.gold
+        for index in SAMPLE_POSITIONS:
+            if index >= len(gold):
+                continue
+
+            candidate = normalise(gold[index])
+            if candidate.isdigit():
+                continue    # answer to an ambiguity prompt, not an action
+            if SKIP_NO_EFFECT_ACTIONS and candidate.startswith(
+                NO_EFFECT_PREFIXES
+            ):
+                continue
+
+            history = gold[:index]
+            gold_id = f"scienceworld:{task_name}:v{variation}:a{index}:gold"
+            pre_cache = None
+
+            if gold_id not in skip_ids:
+                pre_cache = prepare_pre_state(session, history)
+                rec = build_example(
+                    session, history, candidate, gold_id,
+                    "gold_action_sequence", pre_cache,
+                )
+                if rec:
+                    records.append(rec)
+                    log_record(rec)
+
+            if RANDOM_ACTIONS_PER_POSITION <= 0:
+                continue
+
+            rand_ids = [
+                f"scienceworld:{task_name}:v{variation}:a{index}:rand{i}"
+                for i in range(RANDOM_ACTIONS_PER_POSITION)
+            ]
+            if all(r in skip_ids for r in rand_ids):
+                continue
+
+            if pre_cache is None:
+                pre_cache = prepare_pre_state(session, history)
+
+            randoms = sample_random_actions(
+                session, history, pre_cache, candidate, rng,
+                RANDOM_ACTIONS_PER_POSITION,
+            )
+            for rand_id, action in zip(rand_ids, randoms):
+                if rand_id in skip_ids:
+                    continue
+                rec = build_example(
+                    session, history, action, rand_id,
+                    "random_valid_action", pre_cache,
+                )
+                if rec:
+                    records.append(rec)
+                    log_record(rec)
+    finally:
+        session.close()
+
+    return records
+
+
+def log_record(rec: dict[str, Any]) -> None:
+    search = rec.get("search") or {}
+    print(
+        f"  {rec['id']:<60} {rec['action_text'][:38]:<38} "
+        f"-> {rec['label']:<21} "
+        f"exact={search.get('exact_cost')} approx={search.get('approx_cost')} "
+        f"depth={search.get('exhausted_depth')} nodes={search.get('nodes')} "
+        f"b={search.get('root_branching')} "
+        f"({rec['elapsed_s']}s)",
+        flush=True,
+    )
+
+
+def scenario_job(args: tuple[str, int, set[str]]) -> tuple[str, int, list, str | None]:
+    task_name, variation, skip_ids = args
+    try:
+        return task_name, variation, process_scenario(
+            task_name, variation, skip_ids
+        ), None
+    except Exception as exc:
+        return task_name, variation, [], f"{type(exc).__name__}: {exc}"
 
 
 # =========================================================
 # MAIN
 # =========================================================
 
-def main() -> None:
-    random.seed(SEED)
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
-    records = []
-
-    for task_name in TASK_NAMES:
-        print(f"\n{'=' * 65}")
-        print(f"Task: {task_name}")
-        print(f"{'=' * 65}")
-
-        env = None
-
+def resolve_jobs(tasks: list[str], variations: int) -> list[tuple[str, int]]:
+    probe = ScienceWorldEnv("boil", envStepLimit=ENV_STEP_LIMIT)
+    try:
+        available = set(probe.get_task_names())
+        jobs = []
+        for task in tasks:
+            if task not in available:
+                print(f"WARNING: unknown task '{task}' skipped")
+                continue
+            probe.load(task, 0, "")
+            train = sorted(probe.get_variations_train())
+            for variation in train[:variations]:
+                jobs.append((task, variation))
+        return jobs
+    finally:
         try:
-            env = open_environment(task_name, TASK_VARIATION)
-            gold_actions = get_gold_sequence(env)
-            action_pool = build_action_pool(gold_actions)
+            probe.close()
+        except Exception:
+            pass
 
-            print(f"Gold actions: {len(gold_actions)}")
-            print(f"Unique action candidates: {len(action_pool)}")
 
-            for action_index in SAMPLE_POSITIONS:
-                if action_index >= len(gold_actions):
-                    print(
-                        f"Skipping index {action_index}: "
-                        "outside gold sequence."
-                    )
-                    continue
+def load_existing(path: Path) -> list[dict[str, Any]]:
+    if not path.exists():
+        return []
+    records = []
+    with path.open(encoding="utf-8") as fh:
+        for line in fh:
+            line = line.strip()
+            if line:
+                records.append(json.loads(line))
+    return records
 
-                print(
-                    f"\nTesting action {action_index}: "
-                    f"{gold_actions[action_index]!r}"
-                )
 
-                record = run_candidate_experiment(
-                    env=env,
-                    task_name=task_name,
-                    variation=TASK_VARIATION,
-                    gold_actions=gold_actions,
-                    action_index=action_index,
-                    action_pool=action_pool,
-                )
-
-                records.append(record)
-
-                print(
-                    f"  status={record['search_status']}, "
-                    f"cost={record['recovery_cost']}, "
-                    f"binary={record['binary_label']}, "
-                    f"trinary={record['trinary_label']}"
-                )
-
-        except Exception as exc:
-            print(
-                f"ERROR in task {task_name}: "
-                f"{type(exc).__name__}: {exc}"
-            )
-
-        finally:
-            close_environment(env)
-
-    with OUTPUT_FILE.open("w", encoding="utf-8") as file:
-        for record in records:
-            file.write(json.dumps(record, ensure_ascii=False) + "\n")
+def summarise(records: list[dict[str, Any]]) -> dict[str, Any]:
+    def count(key_fn) -> dict[str, int]:
+        out: dict[str, int] = {}
+        for r in records:
+            k = str(key_fn(r))
+            out[k] = out.get(k, 0) + 1
+        return dict(sorted(out.items()))
 
     summary = {
-        "output_file": str(OUTPUT_FILE),
         "examples": len(records),
-        "search_statuses": {},
-        "binary_labels": {},
-        "trinary_labels": {},
+        "label_k3": count(lambda r: r["label"]),
+        "binary_label": count(lambda r: r["binary_label"]),
+        "label_method": count(lambda r: r["label_method"]),
+        "source": count(lambda r: r["source"]),
+        "search_status": count(
+            lambda r: (r.get("search") or {}).get("status", "rule")
+        ),
+        "scenarios": len({r["scenario_id"] for r in records}),
     }
+    for k in range(1, MAX_HORIZON + 1):
+        summary[f"label_k{k}"] = count(
+            lambda r, k=k: r["labels_by_horizon"][str(k)]
+        )
+    return summary
 
-    for record in records:
-        for field, summary_field in [
-            ("search_status", "search_statuses"),
-            ("binary_label", "binary_labels"),
-            ("trinary_label", "trinary_labels"),
-        ]:
-            value = record.get(field, "missing")
-            summary[summary_field][value] = (
-                summary[summary_field].get(value, 0) + 1
-            )
 
-    print(f"\n{'=' * 65}")
-    print("EXPANDED DATASET SUMMARY")
-    print(f"{'=' * 65}")
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__.split("\n")[1])
+    parser.add_argument("--tasks", nargs="*", default=TASK_NAMES)
+    parser.add_argument("--variations", type=int, default=VARIATIONS_PER_TASK)
+    parser.add_argument("--workers", type=int,
+                        default=max(1, min(4, (os.cpu_count() or 2) - 1)))
+    parser.add_argument("--out", type=Path, default=OUTPUT_FILE)
+    parser.add_argument("--fresh", action="store_true",
+                        help="overwrite the output instead of resuming")
+    args = parser.parse_args()
+
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    if args.fresh and args.out.exists():
+        args.out.unlink()
+
+    existing = load_existing(args.out)
+    skip_ids = {r["id"] for r in existing}
+    if existing:
+        print(f"Resuming: {len(existing)} examples already in {args.out}")
+
+    jobs = resolve_jobs(args.tasks, args.variations)
+    print(f"{len(jobs)} scenarios, {args.workers} workers, "
+          f"horizon={MAX_HORIZON}, budget={MAX_NODES_PER_EXAMPLE} nodes")
+
+    t0 = time.time()
+    all_records = list(existing)
+    failures = []
+
+    with ProcessPoolExecutor(max_workers=args.workers) as pool, \
+            args.out.open("a", encoding="utf-8") as out:
+        futures = [
+            pool.submit(scenario_job, (task, var, skip_ids))
+            for task, var in jobs
+        ]
+        for done, future in enumerate(as_completed(futures), 1):
+            task, var, records, error = future.result()
+            if error:
+                failures.append(f"{task}:v{var}: {error}")
+                print(f"[{done}/{len(jobs)}] ERROR {task}:v{var}: {error}")
+                continue
+            for rec in records:
+                out.write(json.dumps(rec, ensure_ascii=False) + "\n")
+            out.flush()
+            all_records.extend(records)
+            print(f"[{done}/{len(jobs)}] {task}:v{var}: "
+                  f"{len(records)} examples "
+                  f"({(time.time() - t0) / 60:.1f} min elapsed)")
+
+    summary = summarise(all_records)
+    summary["failures"] = failures
+    summary["output_file"] = str(args.out)
+    summary_path = args.out.with_suffix(".summary.json")
+    summary_path.write_text(json.dumps(summary, indent=2))
+
+    print("\n" + "=" * 65)
+    print("DATASET SUMMARY")
+    print("=" * 65)
     print(json.dumps(summary, indent=2))
-    print(f"\nDataset saved to: {OUTPUT_FILE}")
+    print(f"\nDataset: {args.out}\nSummary: {summary_path}")
 
 
 if __name__ == "__main__":
