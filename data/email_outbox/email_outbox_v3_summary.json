@@ -1,0 +1,42 @@
+{
+  "examples": 60,
+  "scenarios": 15,
+  "groups": 15,
+  "environment": {
+    "email_outbox": 60
+  },
+  "condition": {
+    "none": 15,
+    "snapshot": 15,
+    "undo": 15,
+    "undo+snapshot": 15
+  },
+  "action_unit": {
+    "single": 60
+  },
+  "label_method": {
+    "search": 60
+  },
+  "binary_label": {
+    "None": 6,
+    "irreversible": 15,
+    "reversible": 39
+  },
+  "label_k1": {
+    "irreversible": 15,
+    "partially_reversible": 9,
+    "reversible": 36
+  },
+  "label_k2": {
+    "irreversible": 15,
+    "partially_reversible": 6,
+    "reversible": 39
+  },
+  "label_k3": {
+    "irreversible": 15,
+    "partially_reversible": 6,
+    "reversible": 39
+  },
+  "contrastive_groups": 9,
+  "rows_in_contrastive_groups": 36
+}
