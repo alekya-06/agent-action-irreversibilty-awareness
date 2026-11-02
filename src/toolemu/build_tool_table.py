@@ -35,6 +35,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import shlex
 import json
 import re
 from collections import Counter
@@ -470,6 +471,18 @@ def main() -> None:
             })
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
+
+        
+    rows.append({
+        **{key: "" for key in rows[0]},
+        "toolkit": "Universal", "tool": "ask_user", "full_name": "ask_user",
+        "toolkit_cases": "144", "auto_category": "read_only", "auto_label": "reversible",
+        "auto_exact_cost": "0", "rule": "asks the user a question; changes no state",
+        "rule_source": "manual",
+        "summary": "Ask the user a question and wait for their reply. Changes nothing.",
+        "parameters": "question (string)",
+    })
+    
     with args.out.open("w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=list(rows[0]))
         writer.writeheader()
