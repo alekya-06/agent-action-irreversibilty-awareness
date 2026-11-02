@@ -5,8 +5,10 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "mlx-lm>=0.32.2",
     "pytest>=9.1.1",
     "scienceworld>=1.2.3",
     "scikit-learn>=1.9.1",
     "torch>=2.14.1",
+    "transformers>=5.22.1",
 ]
