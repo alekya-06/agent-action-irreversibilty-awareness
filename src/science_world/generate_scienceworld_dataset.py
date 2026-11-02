@@ -1014,6 +1014,12 @@ def main() -> None:
         print(f"Resuming: {len(existing)} examples already in {args.out}")
 
     jobs = resolve_jobs(args.tasks, args.variations)
+    done_jobs = {(r.get("task_name"), r.get("variation")) for r in existing}
+    skipped_jobs = [j for j in jobs if j in done_jobs]
+    jobs = [j for j in jobs if j not in done_jobs]
+    if skipped_jobs:
+        print(f"Skipping {len(skipped_jobs)} scenarios that already have rows")
+        
     print(f"{len(jobs)} scenarios, {args.workers} workers, "
           f"horizon={MAX_HORIZON}, budget={MAX_NODES_PER_EXAMPLE} nodes")
 

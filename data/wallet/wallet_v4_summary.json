@@ -1,0 +1,41 @@
+{
+  "examples": 890,
+  "scenarios": 91,
+  "groups": 445,
+  "environment": {
+    "wallet": 890
+  },
+  "condition": {
+    "none": 445,
+    "undo": 445
+  },
+  "action_unit": {
+    "sequence": 24,
+    "single": 866
+  },
+  "label_method": {
+    "search": 890
+  },
+  "binary_label": {
+    "None": 192,
+    "irreversible": 146,
+    "reversible": 552
+  },
+  "label_k1": {
+    "irreversible": 146,
+    "partially_reversible": 198,
+    "reversible": 546
+  },
+  "label_k2": {
+    "irreversible": 146,
+    "partially_reversible": 195,
+    "reversible": 549
+  },
+  "label_k3": {
+    "irreversible": 146,
+    "partially_reversible": 192,
+    "reversible": 552
+  },
+  "contrastive_groups": 326,
+  "rows_in_contrastive_groups": 652
+}

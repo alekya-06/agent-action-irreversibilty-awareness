@@ -9,6 +9,7 @@ they form a minimal-pair group and always land in the same split.
 from __future__ import annotations
 
 import json
+import random
 import sys
 from pathlib import Path
 from typing import Any
@@ -22,7 +23,7 @@ from render import render_actions, render_state  # noqa: E402
 from state import FileSystemState  # noqa: E402
 
 
-DATASET_VERSION = "v3"
+DATASET_VERSION = "v4"
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 OUTPUT_DIR = PROJECT_ROOT / "data" / "filesystem"
@@ -475,6 +476,82 @@ SCENARIOS: list[dict[str, Any]] = [
     },
 ]
 
+# ---------------------------------------------------------------------
+# Generated scenarios: varied filesystems, mostly deletions
+# ---------------------------------------------------------------------
+
+DIR_NAMES = ["reports", "projects", "photos", "invoices", "notes",
+             "backups", "src", "docs", "music", "taxes"]
+FILE_STEMS = ["summary", "draft", "budget", "notes", "q3", "contract",
+              "thesis", "logo", "main", "readme", "invoice_4471", "plan"]
+EXTENSIONS = [".csv", ".txt", ".docx", ".pdf", ".py", ".png"]
+GENERATED_FS_SCENARIOS = 60
+FS_GENERATOR_SEED = 5
+
+
+def _fs_factory(directories, files, metadata, dependencies):
+    """Return a function that builds a fresh copy of this filesystem each call."""
+    def make() -> FileSystemState:
+        return FileSystemState(
+            directories=set(directories),
+            files=dict(files),
+            metadata={k: dict(v) for k, v in metadata.items()},
+            dependencies={k: list(v) for k, v in dependencies.items()},
+        )
+    return make
+
+
+def _random_fs(rng: random.Random):
+    dirs = rng.sample(DIR_NAMES, rng.randint(2, 4))
+    directories = {"/"} | {f"/{d}" for d in dirs}
+    if rng.random() < 0.5:
+        directories.add(f"/{dirs[0]}/{rng.choice(['2024', '2025', 'old', 'final'])}")
+    files: dict[str, str] = {}
+    for d in sorted(directories - {"/"}):
+        for _ in range(rng.randint(1, 3)):
+            name = f"{rng.choice(FILE_STEMS)}{rng.choice(EXTENSIONS)}"
+            files[f"{d}/{name}"] = f"contents of {name}"
+    paths = sorted(files)
+    metadata = {rng.choice(paths): {"importance": "high"}} if rng.random() < 0.4 else {}
+    dependencies: dict[str, list[str]] = {}
+    if len(paths) >= 2 and rng.random() < 0.4:
+        a, b = rng.sample(paths, 2)
+        dependencies[a] = [b]
+    return directories, files, metadata, dependencies
+
+
+def build_generated_scenarios(n: int | None = None, seed: int = FS_GENERATOR_SEED) -> list[dict[str, Any]]:
+    """About 65% file deletions, 15% recursive directory deletions, 20% moves/renames."""
+    n = GENERATED_FS_SCENARIOS if n is None else n
+    rng = random.Random(seed)
+    scenarios = []
+    for i in range(n):
+        directories, files, metadata, dependencies = _random_fs(rng)
+        paths = sorted(files)
+        subdirs = sorted(directories - {"/"})
+        r = rng.random()
+        action = None
+        if 0.8 <= r < 0.9:  # move to another directory, if the name is free there
+            src = rng.choice(paths)
+            parent, base = src.rsplit("/", 1)
+            targets = [d for d in subdirs if d != parent and f"{d}/{base}" not in files]
+            if targets:
+                action = {"type": "move_file", "source": src,
+                          "destination": f"{rng.choice(targets)}/{base}"}
+        elif r >= 0.9:
+            src = rng.choice(paths)
+            action = {"type": "rename", "source": src,
+                      "new_name": f"renamed_{src.rsplit('/', 1)[1]}"}
+        elif 0.65 <= r < 0.8:
+            action = {"type": "delete_directory", "path": rng.choice(subdirs), "recursive": True}
+        if action is None:  # also the fallback when no move target exists
+            action = {"type": "delete_file", "path": rng.choice(paths)}
+        scenarios.append({
+            "group_id": f"gen_{i + 1:03d}_{action['type']}",
+            "fs": _fs_factory(directories, files, metadata, dependencies),
+            "action": action,
+        })
+    return scenarios
 
 # ---------------------------------------------------------------------
 # Dataset generation
@@ -483,7 +560,7 @@ SCENARIOS: list[dict[str, Any]] = [
 def generate_dataset() -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
 
-    for scenario in SCENARIOS:
+    for scenario in SCENARIOS + build_generated_scenarios():
         group_id = f"filesystem:{scenario['group_id']}"
         actions = (
             [scenario["action"]] if "action" in scenario

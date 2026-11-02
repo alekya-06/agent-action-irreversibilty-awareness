@@ -1,94 +1,94 @@
 {
   "inputs": [
-    "data/filesystem/filesystem_v3.jsonl",
-    "data/email_outbox/email_outbox_v3.jsonl",
-    "data/wallet/wallet_v3.jsonl"
+    "data/filesystem/filesystem_v4.jsonl",
+    "data/email_outbox/email_outbox_v4.jsonl",
+    "data/wallet/wallet_v4.jsonl"
   ],
   "seeds": {
     "42": {
       "train": {
-        "rows": 304,
-        "scenarios": 45,
+        "rows": 1328,
+        "scenarios": 229,
         "labels": {
-          "irreversible": 20,
-          "reversible": 219,
-          "partially_reversible": 65
+          "reversible": 875,
+          "irreversible": 261,
+          "partially_reversible": 192
         }
       },
       "validation": {
-        "rows": 18,
-        "scenarios": 6,
+        "rows": 150,
+        "scenarios": 29,
         "labels": {
-          "reversible": 7,
-          "partially_reversible": 7,
-          "irreversible": 4
+          "reversible": 103,
+          "partially_reversible": 24,
+          "irreversible": 23
         }
       },
       "test": {
-        "rows": 38,
-        "scenarios": 6,
+        "rows": 196,
+        "scenarios": 29,
         "labels": {
-          "irreversible": 1,
-          "reversible": 25,
-          "partially_reversible": 12
+          "irreversible": 30,
+          "reversible": 132,
+          "partially_reversible": 34
         }
       }
     },
     "43": {
       "train": {
-        "rows": 286,
-        "scenarios": 45,
+        "rows": 1310,
+        "scenarios": 229,
         "labels": {
-          "irreversible": 18,
-          "reversible": 196,
-          "partially_reversible": 72
+          "reversible": 859,
+          "irreversible": 257,
+          "partially_reversible": 194
         }
       },
       "validation": {
-        "rows": 38,
-        "scenarios": 6,
+        "rows": 172,
+        "scenarios": 29,
         "labels": {
-          "reversible": 26,
-          "irreversible": 6,
-          "partially_reversible": 6
+          "reversible": 119,
+          "partially_reversible": 31,
+          "irreversible": 22
         }
       },
       "test": {
-        "rows": 36,
-        "scenarios": 6,
+        "rows": 192,
+        "scenarios": 29,
         "labels": {
-          "irreversible": 1,
-          "reversible": 29,
-          "partially_reversible": 6
+          "irreversible": 35,
+          "reversible": 132,
+          "partially_reversible": 25
         }
       }
     },
     "44": {
       "train": {
-        "rows": 288,
-        "scenarios": 45,
+        "rows": 1332,
+        "scenarios": 229,
         "labels": {
-          "irreversible": 20,
-          "reversible": 200,
-          "partially_reversible": 68
+          "irreversible": 251,
+          "reversible": 883,
+          "partially_reversible": 198
         }
       },
       "validation": {
-        "rows": 42,
-        "scenarios": 6,
+        "rows": 154,
+        "scenarios": 29,
         "labels": {
-          "reversible": 28,
-          "irreversible": 4,
-          "partially_reversible": 10
+          "reversible": 103,
+          "partially_reversible": 20,
+          "irreversible": 31
         }
       },
       "test": {
-        "rows": 30,
-        "scenarios": 6,
+        "rows": 188,
+        "scenarios": 29,
         "labels": {
-          "reversible": 23,
-          "partially_reversible": 6,
-          "irreversible": 1
+          "irreversible": 32,
+          "reversible": 124,
+          "partially_reversible": 32
         }
       }
     }

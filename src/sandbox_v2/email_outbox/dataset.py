@@ -9,6 +9,7 @@ scenario_id, so they form a minimal-pair group and stay in one split.
 from __future__ import annotations
 
 import json
+import random
 import sys
 from pathlib import Path
 from typing import Any
@@ -24,7 +25,7 @@ from state import EmailOutboxState  # noqa: E402
 from transitions import transition  # noqa: E402
 
 
-DATASET_VERSION = "v3"
+DATASET_VERSION = "v4"
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DATA_DIR = PROJECT_ROOT / "data" / "email_outbox"
 OUTPUT_FILE = DATA_DIR / f"email_outbox_{DATASET_VERSION}.jsonl"
@@ -58,6 +59,55 @@ EMAIL_PROFILES = [
         "edited_body": "The final release is ready.",
     },
 ]
+
+# (topic_id, subject, body, edited_body)
+TOPICS = [
+    ("budget_review", "Budget review", "The Q3 budget is attached.", "The revised Q3 budget is attached."),
+    ("offer_letter", "Offer letter", "Please find your offer letter attached.", "Please find your updated offer letter attached."),
+    ("invoice", "Invoice 4471", "Invoice 4471 is due on Friday.", "Invoice 4471 is due next Monday."),
+    ("interview", "Interview schedule", "Your interview is on Wednesday at 10am.", "Your interview is on Thursday at 2pm."),
+    ("server_outage", "Server outage", "The server will be down tonight from 11pm.", "The server will be down tonight from midnight."),
+    ("contract", "Contract draft", "Here is the first draft of the contract.", "Here is the second draft of the contract."),
+    ("grades", "Final grades", "Final grades are posted for review.", "Final grades are posted; two corrections were made."),
+    ("travel", "Travel booking", "Your flight to Delhi is booked for the 14th.", "Your flight to Delhi is booked for the 15th."),
+    ("rent", "Rent reminder", "Rent of 25,000 is due on the 1st.", "Rent of 26,000 is due on the 1st."),
+    ("resignation", "Resignation", "I am resigning effective next month.", "I am resigning effective in two months."),
+    ("press_release", "Press release", "The press release goes out on Monday.", "The press release goes out on Tuesday."),
+    ("medical", "Test results", "Your test results are ready to discuss.", "Your test results are ready; please book a visit."),
+    ("password_reset", "Password reset", "Your temporary password is in the portal.", "Your temporary password has been reissued in the portal."),
+    ("salary", "Salary revision", "Your salary revision letter is attached.", "Your corrected salary revision letter is attached."),
+    ("party", "Team dinner", "Team dinner is on Friday at 8pm.", "Team dinner is on Saturday at 8pm."),
+    ("bug_report", "Bug report", "The login bug is reproducible on Android.", "The login bug is reproducible on Android and iOS."),
+    ("grant", "Grant submission", "The grant proposal is ready to submit.", "The grant proposal is ready after final edits."),
+    ("refund", "Refund request", "I would like a refund for order 8812.", "I would like a refund for orders 8812 and 8813."),
+    ("feedback", "Performance feedback", "Here is your mid-year feedback.", "Here is your revised mid-year feedback."),
+    ("lease", "Lease renewal", "The lease renewal is attached for signing.", "The amended lease renewal is attached for signing."),
+]
+PEOPLE = [
+    "alice", "bob", "carol", "dave", "erin", "frank", "grace", "heidi", "ivan", "judy",
+    "kiran", "leela", "manoj", "nisha", "omar", "priya", "rahul", "sana", "tara", "vikram",
+]
+GENERATED_PROFILES = 20
+GENERATOR_SEED = 11
+
+
+def build_generated_profiles(n: int | None = None, seed: int = GENERATOR_SEED) -> list[dict[str, Any]]:
+    """One profile per topic, with a random sender and 1-3 recipients. Deterministic."""
+    n = GENERATED_PROFILES if n is None else n
+    rng = random.Random(seed)
+    profiles = []
+    for i in range(n):
+        topic_id, subject, body, edited_body = TOPICS[i % len(TOPICS)]
+        people = rng.sample(PEOPLE, 1 + rng.randint(1, 3))
+        profiles.append({
+            "profile_id": f"gen_{i + 1:03d}_{topic_id}",
+            "sender": f"{people[0]}@example.com",
+            "recipients": [f"{p}@example.com" for p in people[1:]],
+            "subject": subject,
+            "body": body,
+            "edited_body": edited_body,
+        })
+    return profiles
 
 def make_draft(
     profile: dict[str, Any],
@@ -122,7 +172,7 @@ def build_case(
 def generate_dataset() -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
 
-    for profile in EMAIL_PROFILES:
+    for profile in EMAIL_PROFILES + build_generated_profiles():
         for family in ACTION_FAMILIES:
             group_id = f"email_outbox:{profile['profile_id']}:{family}"
 

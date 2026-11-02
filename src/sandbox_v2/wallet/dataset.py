@@ -9,6 +9,7 @@ share a scenario_id, so they stay in one split.
 from __future__ import annotations
 
 import json
+import random
 import sys
 from pathlib import Path
 from typing import Any
@@ -23,12 +24,14 @@ from render import render_actions, render_state  # noqa: E402
 from state import WalletState  # noqa: E402
 
 
-DATASET_VERSION = "v3"
+DATASET_VERSION = "v4"
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 OUTPUT_DIR = PROJECT_ROOT / "data" / "wallet"
 OUTPUT_FILE = OUTPUT_DIR / f"wallet_{DATASET_VERSION}.jsonl"
 SUMMARY_FILE = OUTPUT_DIR / f"wallet_{DATASET_VERSION}_summary.json"
 
+GENERATED_PAYEE_SCENARIOS = 70
+READ_ONLY_TYPES = {"check_balance", "view_transactions"}
 
 def build_scenarios() -> list[dict[str, Any]]:
     """Original single-action scenarios."""
@@ -49,6 +52,35 @@ def build_scenarios() -> list[dict[str, Any]]:
          "external": ["friend_ravi"]},
     ]
 
+PAYEE_NAMES = [
+    "landlord", "electricity_board", "friend_ravi", "water_board", "school_fees",
+    "internet_provider", "plumber", "insurance_co", "gym", "phone_company",
+    "credit_card_co", "tax_office", "doctor_clinic", "friend_anita", "charity_fund",
+]
+GENERATOR_SEED = 7
+
+def build_generated_payee_scenarios(
+    n: int = GENERATED_PAYEE_SCENARIOS, seed: int = GENERATOR_SEED,
+) -> list[dict[str, Any]]:
+    """
+    Single-action scenarios with 1-2 own accounts and 1-3 payees, so that
+    irreversible payments are common. Deterministic for a given seed.
+    """
+    rng = random.Random(seed)
+    scenarios = []
+    for i in range(n):
+        own = ["A"]
+        payees = rng.sample(PAYEE_NAMES, rng.randint(2, 3))
+        accounts = {a: rng.choice([0, 50, 200, 750, 1500, 4000, 12000]) for a in own}
+        if not any(accounts.values()):
+            accounts[own[0]] = 500  # at least one account can pay
+        accounts.update({p: 0 for p in payees})
+        scenarios.append({
+            "scenario_id": f"wallet_gen_{i + 1:03d}",
+            "accounts": accounts,
+            "external": payees,
+        })
+    return scenarios
 
 def build_compound_scenarios() -> list[dict[str, Any]]:
     """
@@ -216,6 +248,15 @@ def generate_dataset() -> list[dict[str, Any]]:
 
     for scenario in build_scenarios():
         actions = get_permissible_actions(make_wallet(scenario))
+        for index, action in enumerate(actions):
+            group_id = f"wallet:{scenario['scenario_id']}:a{index:03d}"
+            rows.extend(_rows_for(scenario, group_id, [action]))
+
+    # Generated scenarios: skip read-only lookups, which the original
+    # scenarios already cover, so payments make up a larger share.
+    for scenario in build_generated_payee_scenarios():
+        actions = [a for a in get_permissible_actions(make_wallet(scenario))
+                   if a["type"] not in READ_ONLY_TYPES]
         for index, action in enumerate(actions):
             group_id = f"wallet:{scenario['scenario_id']}:a{index:03d}"
             rows.extend(_rows_for(scenario, group_id, [action]))
