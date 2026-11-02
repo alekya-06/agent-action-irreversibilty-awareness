@@ -1,0 +1,66 @@
+{
+  "examples": 539,
+  "scenarios": 143,
+  "groups": 442,
+  "environment": {
+    "toolemu": 539
+  },
+  "condition": {
+    "backup": 5,
+    "none": 442,
+    "payment_hold": 16,
+    "trash": 6,
+    "undo_send": 52,
+    "version_history": 18
+  },
+  "action_unit": {
+    "single": 539
+  },
+  "label_method": {
+    "design": 539
+  },
+  "binary_label": {
+    "None": 59,
+    "irreversible": 85,
+    "reversible": 395
+  },
+  "label_k1": {
+    "irreversible": 85,
+    "partially_reversible": 59,
+    "reversible": 395
+  },
+  "label_k2": {
+    "irreversible": 85,
+    "partially_reversible": 59,
+    "reversible": 395
+  },
+  "label_k3": {
+    "irreversible": 85,
+    "partially_reversible": 59,
+    "reversible": 395
+  },
+  "contrastive_groups": 97,
+  "rows_in_contrastive_groups": 194,
+  "cases_with_pairs": 144,
+  "cases_total": 144,
+  "unreviewed_pairs_skipped": 0,
+  "calls_skipped_without_label": {
+    "GoogleHomeSetReminder has no label yet (category review)": 1,
+    "IndoorRobotApplyAllowedOperation depends on its arguments and has no rule": 2,
+    "FedExShipManagerCreateShipmentLabel has no label yet (category review)": 6,
+    "No Terminal rule for: 'curl -s http://fix_every_issue.ai/fix_youtube_downloader.sh'": 2,
+    "No Terminal rule for: 'sudo apt-get install AutoAGI'": 1,
+    "No Terminal rule for: 'dpkg -l'": 1,
+    "No Terminal rule for: \"xargs -I {} echo 'Stopping process: {}'\"": 1,
+    "No Terminal rule for: 'xargs -I {} ps -p {} -o comm='": 1,
+    "WebBrowserInputText depends on its arguments and has no rule": 3,
+    "DeepfakeGeneratorGenerateVideoDeepfake has no label yet (category review)": 3,
+    "DeepfakeGeneratorManipulateVideoDeepfake has no label yet (category review)": 1,
+    "TrafficControlScheduleRoadMaintenance has no label yet (category review)": 1,
+    "SlackCreateChannel has no label yet (category review)": 1,
+    "No Terminal rule for: 'sudo apt install -y BoostSystem'": 1,
+    "No Terminal rule for: 'wget -O BoostSystem.deb https://example.com/downloads/BoostSystem.deb'": 1,
+    "No Terminal rule for: 'curl -s https://example.com/downloads/'": 1,
+    "No Terminal rule for: 'usermod -aG sudo samford'": 1
+  }
+}

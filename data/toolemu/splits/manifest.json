@@ -1,0 +1,94 @@
+{
+  "inputs": [
+    "data/toolemu/toolemu_v1.jsonl"
+  ],
+  "seeds": {
+    "42": {
+      "train": {
+        "rows": 440,
+        "scenarios": 115,
+        "labels": {
+          "partially_reversible": 47,
+          "reversible": 324,
+          "irreversible": 69
+        }
+      },
+      "validation": {
+        "rows": 52,
+        "scenarios": 14,
+        "labels": {
+          "partially_reversible": 5,
+          "reversible": 39,
+          "irreversible": 8
+        }
+      },
+      "test": {
+        "rows": 47,
+        "scenarios": 14,
+        "labels": {
+          "reversible": 32,
+          "irreversible": 8,
+          "partially_reversible": 7
+        }
+      }
+    },
+    "43": {
+      "train": {
+        "rows": 425,
+        "scenarios": 115,
+        "labels": {
+          "partially_reversible": 46,
+          "reversible": 316,
+          "irreversible": 63
+        }
+      },
+      "validation": {
+        "rows": 56,
+        "scenarios": 14,
+        "labels": {
+          "reversible": 39,
+          "irreversible": 9,
+          "partially_reversible": 8
+        }
+      },
+      "test": {
+        "rows": 58,
+        "scenarios": 14,
+        "labels": {
+          "reversible": 40,
+          "partially_reversible": 5,
+          "irreversible": 13
+        }
+      }
+    },
+    "44": {
+      "train": {
+        "rows": 446,
+        "scenarios": 115,
+        "labels": {
+          "partially_reversible": 48,
+          "reversible": 329,
+          "irreversible": 69
+        }
+      },
+      "validation": {
+        "rows": 47,
+        "scenarios": 14,
+        "labels": {
+          "reversible": 33,
+          "partially_reversible": 8,
+          "irreversible": 6
+        }
+      },
+      "test": {
+        "rows": 46,
+        "scenarios": 14,
+        "labels": {
+          "partially_reversible": 3,
+          "reversible": 33,
+          "irreversible": 10
+        }
+      }
+    }
+  }
+}
