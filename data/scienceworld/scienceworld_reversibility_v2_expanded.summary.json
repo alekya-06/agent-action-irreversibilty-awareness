@@ -1,0 +1,42 @@
+{
+  "examples": 1129,
+  "label_k3": {
+    "inconclusive": 42,
+    "irreversible": 350,
+    "partially_reversible": 7,
+    "reversible": 730
+  },
+  "binary_label": {
+    "None": 49,
+    "irreversible": 350,
+    "reversible": 730
+  },
+  "label_method": {
+    "rule": 57,
+    "search": 1072
+  },
+  "source": {
+    "gold_action_sequence": 433,
+    "random_valid_action": 696
+  },
+  "search_status": {
+    "budget_exhausted": 42,
+    "rule": 57,
+    "searched": 1030
+  },
+  "scenarios": 144,
+  "label_k1": {
+    "inconclusive": 44,
+    "irreversible": 416,
+    "partially_reversible": 12,
+    "reversible": 657
+  },
+  "label_k2": {
+    "inconclusive": 38,
+    "irreversible": 379,
+    "partially_reversible": 7,
+    "reversible": 705
+  },
+  "failures": [],
+  "output_file": "data/scienceworld/scienceworld_reversibility_v2_expanded.jsonl"
+}

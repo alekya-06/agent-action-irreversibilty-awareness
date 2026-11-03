@@ -1,95 +1,98 @@
 {
   "inputs": [
-    "data/scienceworld/scienceworld_reversibility_v2_shared.jsonl"
+    "data/scienceworld/scienceworld_reversibility_v3_shared.jsonl"
   ],
   "seeds": {
     "42": {
       "train": {
-        "rows": 367,
+        "rows": 918,
         "scenarios": 24,
         "labels": {
-          "reversible": 230,
-          "irreversible": 121,
-          "partially_reversible": 3,
-          "inconclusive": 13
+          "reversible": 586,
+          "irreversible": 293,
+          "partially_reversible": 6,
+          "inconclusive": 33
         }
       },
       "validation": {
-        "rows": 52,
+        "rows": 126,
         "scenarios": 3,
         "labels": {
-          "reversible": 37,
-          "irreversible": 15
+          "reversible": 88,
+          "irreversible": 37,
+          "partially_reversible": 1
         }
       },
       "test": {
-        "rows": 32,
+        "rows": 85,
         "scenarios": 3,
         "labels": {
-          "irreversible": 8,
-          "reversible": 18,
-          "inconclusive": 6
+          "irreversible": 20,
+          "reversible": 56,
+          "inconclusive": 9
         }
       }
     },
     "43": {
       "train": {
-        "rows": 375,
+        "rows": 933,
         "scenarios": 24,
         "labels": {
-          "reversible": 239,
-          "irreversible": 119,
-          "partially_reversible": 2,
-          "inconclusive": 15
+          "reversible": 607,
+          "irreversible": 289,
+          "partially_reversible": 5,
+          "inconclusive": 32
         }
       },
       "validation": {
-        "rows": 31,
+        "rows": 73,
         "scenarios": 3,
         "labels": {
-          "reversible": 18,
-          "irreversible": 11,
+          "reversible": 52,
+          "irreversible": 19,
           "inconclusive": 1,
           "partially_reversible": 1
         }
       },
       "test": {
-        "rows": 45,
+        "rows": 123,
         "scenarios": 3,
         "labels": {
-          "reversible": 28,
-          "irreversible": 14,
-          "inconclusive": 3
+          "reversible": 71,
+          "irreversible": 42,
+          "inconclusive": 9,
+          "partially_reversible": 1
         }
       }
     },
     "44": {
       "train": {
-        "rows": 363,
+        "rows": 894,
         "scenarios": 24,
         "labels": {
-          "reversible": 223,
-          "irreversible": 120,
-          "partially_reversible": 3,
-          "inconclusive": 17
+          "reversible": 570,
+          "irreversible": 279,
+          "partially_reversible": 6,
+          "inconclusive": 39
         }
       },
       "validation": {
-        "rows": 42,
+        "rows": 113,
         "scenarios": 3,
         "labels": {
-          "reversible": 28,
-          "irreversible": 13,
-          "inconclusive": 1
+          "reversible": 78,
+          "irreversible": 33,
+          "inconclusive": 1,
+          "partially_reversible": 1
         }
       },
       "test": {
-        "rows": 46,
+        "rows": 122,
         "scenarios": 3,
         "labels": {
-          "irreversible": 11,
-          "reversible": 34,
-          "inconclusive": 1
+          "irreversible": 38,
+          "reversible": 82,
+          "inconclusive": 2
         }
       }
     }
