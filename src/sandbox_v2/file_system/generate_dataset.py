@@ -18,12 +18,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "common"))
 
 from schema import check_dataset, make_record, summarise, write_jsonl  # noqa: E402
 
-from labelling import CONDITIONS, label_actions  # noqa: E402
+from labelling import CONDITIONS, label_actions, touched_files  # noqa: E402
 from render import render_actions, render_state  # noqa: E402
 from state import FileSystemState  # noqa: E402
 
 
-DATASET_VERSION = "v4"
+DATASET_VERSION = "v5"
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 OUTPUT_DIR = PROJECT_ROOT / "data" / "filesystem"
@@ -481,7 +481,7 @@ SCENARIOS: list[dict[str, Any]] = [
 # ---------------------------------------------------------------------
 
 DIR_NAMES = ["reports", "projects", "photos", "invoices", "notes",
-             "backups", "src", "docs", "music", "taxes"]
+             "media", "src", "docs", "music", "taxes"]
 FILE_STEMS = ["summary", "draft", "budget", "notes", "q3", "contract",
               "thesis", "logo", "main", "readme", "invoice_4471", "plan"]
 EXTENSIONS = [".csv", ".txt", ".docx", ".pdf", ".py", ".png"]
@@ -519,6 +519,33 @@ def _random_fs(rng: random.Random):
         dependencies[a] = [b]
     return directories, files, metadata, dependencies
 
+EDIT_SCENARIOS = 30
+EDIT_GENERATOR_SEED = 9
+EDIT_SUFFIXES = [" (revised)", " - final version", " with corrections", " v2", " (shortened)"]
+
+
+def build_generated_edit_scenarios(n: int | None = None, seed: int = EDIT_GENERATOR_SEED) -> list[dict[str, Any]]:
+    """
+    One edit_file per scenario: irreversible under 'none' (no record of the old
+    text), reversible under undo or snapshot. Half append to the file, half
+    replace its contents.
+    """
+    n = EDIT_SCENARIOS if n is None else n
+    rng = random.Random(seed)
+    scenarios = []
+    for i in range(n):
+        directories, files, metadata, dependencies = _random_fs(rng)
+        path = rng.choice(sorted(files))
+        if rng.random() < 0.5:
+            new_contents = files[path] + rng.choice(EDIT_SUFFIXES)
+        else:
+            new_contents = f"new contents for {path.rsplit('/', 1)[1]}"
+        scenarios.append({
+            "group_id": f"gen_edit_{i + 1:03d}",
+            "fs": _fs_factory(directories, files, metadata, dependencies),
+            "action": {"type": "edit_file", "path": path, "contents": new_contents},
+        })
+    return scenarios
 
 def build_generated_scenarios(n: int | None = None, seed: int = FS_GENERATOR_SEED) -> list[dict[str, Any]]:
     """About 65% file deletions, 15% recursive directory deletions, 20% moves/renames."""
@@ -560,7 +587,7 @@ def build_generated_scenarios(n: int | None = None, seed: int = FS_GENERATOR_SEE
 def generate_dataset() -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
 
-    for scenario in SCENARIOS + build_generated_scenarios():
+    for scenario in SCENARIOS + build_generated_scenarios() + build_generated_edit_scenarios():
         group_id = f"filesystem:{scenario['group_id']}"
         actions = (
             [scenario["action"]] if "action" in scenario
@@ -583,7 +610,10 @@ def generate_dataset() -> list[dict[str, Any]]:
                 scenario_id=group_id,
                 group_id=group_id,
                 condition=condition,
-                state_text=render_state(initial_fs, condition),
+                state_text=render_state(
+                    initial_fs, condition,
+                    touched_files(initial_fs, actions) if condition == "stale_snapshot" else (),
+                ),
                 action_text=render_actions(actions),
                 action_unit=unit,
                 labels=result["labels"],

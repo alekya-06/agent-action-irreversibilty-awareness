@@ -25,7 +25,7 @@ from state import EmailOutboxState  # noqa: E402
 from transitions import transition  # noqa: E402
 
 
-DATASET_VERSION = "v4"
+DATASET_VERSION = "v5"
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DATA_DIR = PROJECT_ROOT / "data" / "email_outbox"
 OUTPUT_FILE = DATA_DIR / f"email_outbox_{DATASET_VERSION}.jsonl"
@@ -183,7 +183,7 @@ def generate_dataset() -> list[dict[str, Any]]:
                 rows.append(make_record(
                     id=f"{group_id}:{condition}",
                     environment="email_outbox",
-                    scenario_id=group_id,
+                    scenario_id=f"email_outbox:{profile['profile_id']}",
                     group_id=group_id,
                     condition=condition,
                     state_text=render_state(initial_state, condition),

@@ -35,6 +35,7 @@ CONDITIONS = {
     "undo": (False, True),
     "snapshot": (True, False),
     "undo+snapshot": (True, True),
+    "stale_snapshot": (True, False),
 }
 
 
@@ -44,6 +45,33 @@ def approx_key(fs: FileSystemState) -> tuple:
         tuple(sorted(fs.files.items())),
     )
 
+def touched_files(fs: FileSystemState, actions: list[dict]) -> list[str]:
+    """Files in fs that the actions delete, edit, move or rename (directly or via a directory)."""
+    paths: set[str] = set()
+    for action in actions:
+        kind = action["type"]
+        if kind in ("delete_file", "edit_file"):
+            paths.add(action["path"])
+        elif kind == "move_file":
+            paths.add(action["source"])
+        elif kind in ("rename", "delete_directory"):
+            target = action["source"] if kind == "rename" else action["path"]
+            if target in fs.files:
+                paths.add(target)
+            else:
+                prefix = target.rstrip("/") + "/"
+                paths |= {p for p in fs.files if p.startswith(prefix)}
+    return sorted(p for p in paths if p in fs.files)
+
+
+def stale_version(fs: FileSystemState, actions: list[dict]) -> FileSystemState:
+    """The file system as it was before the touched files were created."""
+    stale = fs.clone()
+    for path in touched_files(fs, actions):
+        stale.files.pop(path, None)
+        stale.metadata.pop(path, None)
+        stale.dependencies.pop(path, None)
+    return stale
 
 def label_actions(
     scenario_id: str,
@@ -63,7 +91,8 @@ def label_actions(
     history: list[dict] = []
 
     if provide_snapshot:
-        snapshots = save_snapshot(current, snapshots, f"{scenario_id}_snapshot")
+        base = stale_version(current, actions) if condition == "stale_snapshot" else current
+        snapshots = save_snapshot(base, snapshots, f"{scenario_id}_snapshot")
 
     for i, action in enumerate(actions):
         if record_undo:

@@ -11,7 +11,7 @@ for name in ("sandbox", "sandbox_v2"):
         break
 from schema import check_dataset, summarise  # noqa: E402
 
-SKIP = ("before_", "drafts", "reviews", "fixes", "_summary", "reversibility_v2.jsonl", "legacy", "_expanded")
+SKIP = ("before_", "drafts", "reviews", "fixes", "_summary", "reversibility_v2.jsonl", "legacy", "reversibility_v3.jsonl")
 files = [p for p in sorted(Path("data").rglob("*.jsonl")) if not any(s in str(p) for s in SKIP)]
 total = 0
 for path in files:

@@ -1,0 +1,44 @@
+{
+  "examples": 555,
+  "scenarios": 111,
+  "groups": 111,
+  "environment": {
+    "filesystem": 555
+  },
+  "condition": {
+    "none": 111,
+    "snapshot": 111,
+    "stale_snapshot": 111,
+    "undo": 111,
+    "undo+snapshot": 111
+  },
+  "action_unit": {
+    "sequence": 65,
+    "single": 490
+  },
+  "label_method": {
+    "search": 555
+  },
+  "binary_label": {
+    "None": 18,
+    "irreversible": 166,
+    "reversible": 371
+  },
+  "label_k1": {
+    "irreversible": 166,
+    "partially_reversible": 32,
+    "reversible": 357
+  },
+  "label_k2": {
+    "irreversible": 166,
+    "partially_reversible": 21,
+    "reversible": 368
+  },
+  "label_k3": {
+    "irreversible": 166,
+    "partially_reversible": 18,
+    "reversible": 371
+  },
+  "contrastive_groups": 89,
+  "rows_in_contrastive_groups": 445
+}

@@ -136,6 +136,20 @@ def transition(fs: FileSystemState, action: dict):
         # References from surviving resources remain intact.
 
     # --------------------------------------------------
+    # 3b. Edit file contents
+    # --------------------------------------------------
+    elif action_type == "edit_file":
+        path = normalize_path(action["path"])
+
+        if path not in new_fs.files:
+            raise ValueError(f"Not a file: {path}")
+
+        if new_fs.files[path] == action["contents"]:
+            raise ValueError("Edit does not change the file")
+
+        new_fs.files[path] = action["contents"]
+        
+    # --------------------------------------------------
     # 4. Rename file or directory
     # --------------------------------------------------
     elif action_type == "rename":
