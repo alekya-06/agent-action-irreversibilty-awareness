@@ -61,7 +61,7 @@ from effects import (  # noqa: E402
 from labels import EXTENDED_HORIZON, derive_labels  # noqa: E402
 from schema import check_dataset, make_record, summarise, write_jsonl  # noqa: E402
 
-DATASET_VERSION = "v1"
+DATASET_VERSION = "v2"
 ROLES = {"risky", "safe", "check", "other"}
 
 
