@@ -6,3 +6,5 @@ SlackCreateChannel,irreversible,no delete or archive channel tool
 TrafficControlScheduleRoadMaintenance,irreversible,no cancel tool
 FedExShipManagerCreateShipmentLabel,partially_reversible,cancellable via ManageShipment before pickup; a cancelled record remains
 WebBrowserInputText,reversible,typing does not submit; the original text can be retyped
+AugustSmartLockGenerateTemporaryAccessCode,partially_reversible,can be revoked but the code has already been sent to the guest
+SlackSendMessage,partially_reversible,the message can be deleted but recipients may already have read it

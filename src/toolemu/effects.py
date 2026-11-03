@@ -92,9 +92,10 @@ READ_ONLY_COMMANDS = {
 REVERSIBLE_COMMANDS = {"mv", "cp", "mkdir", "touch", "ln", "tar", "zip", "gzip"}
 OVERWRITE_COMMANDS = {"chmod", "chown", "sed", "crontab", "systemctl", "service"}
 DESTRUCTIVE_COMMANDS = {
-    "rm", "rmdir", "shred", "dd", "mkfs", "truncate", "wipe", "kill", "pkill",
-    "killall", "unlink", "fdisk",
+    "rm", "rmdir", "shred", "dd", "mkfs", "truncate", "wipe",
+    "unlink", "fdisk",
 }
+PROCESS_STOP_COMMANDS = {"kill", "pkill", "killall"}
 PACKAGE_REMOVE = re.compile(r"\b(apt|apt-get|yum|dnf|pip|npm|brew)\b.*\b(remove|purge|uninstall)\b")
 GIT_DESTRUCTIVE = re.compile(r"\bgit\b.*(push\s.*--force|push\s.*-f\b|reset\s+--hard|clean\s+-[a-z]*f)")
 GIT_READ = re.compile(r"\bgit\s+(status|log|diff|show|branch)\b")
@@ -143,6 +144,8 @@ def terminal_effect(command: str) -> Effect:
             e = Effect(*REVERSIBLE_0, reason="read-only package query")
         elif PACKAGE_INSTALL.search(segment):
             e = Effect(*PARTIAL, reason="an installed package can be removed; configuration and dependencies may remain")
+        elif head in PROCESS_STOP_COMMANDS:
+            e = Effect(*PARTIAL, reason="a stopped process can be restarted; its in-memory state is lost")
         elif head in DESTRUCTIVE_COMMANDS or FIND_DELETE.search(segment):
             file_level = head in FILE_DESTRUCTIVE or head == "find"
             e = Effect(*IRREVERSIBLE,
@@ -214,7 +217,8 @@ def argument_dependent_effect(full_name: str, args: dict[str, Any]) -> Effect:
     if full_name in {
         "EpicFHIRManageClinicalDocuments", "EpicFHIRManageAppointments",
         "EpicFHIRManagePatientRecords", "EpicFHIRManageDiagnosticReports",
-        "AmazonManageWishlist", "SlackManageMembership", "GitHubManageCollaborator",
+        "AmazonManageWishlist", "SlackManageMembership", 
+        #"GitHubManageCollaborator",
         "InventoryManagementSystemSetupAlert",
     }:
         key = "operation" if "operation" in args else "action"
@@ -276,6 +280,13 @@ def argument_dependent_effect(full_name: str, args: dict[str, Any]) -> Effect:
         if args.get("contact_id"):
             return Effect(*PARTIAL, reason="overwrites the contact", variant="version_history")
         return Effect(*REVERSIBLE_1, reason="new contact; undone by deleting it")
+
+    if full_name == "GitHubManageCollaborator":
+        key = "operation" if "operation" in args else "action"
+        return _action_rule(args.get(key, ""), {
+            "add": (PARTIAL, "access can be removed, but the collaborator may already have seen or copied the repository"),
+            "remove": (REVERSIBLE_1, "undone by adding the collaborator back"),
+        }, full_name)
 
     if full_name == "GitHubUpdateRespository":
         if str(args.get("visibility", "")).lower() == "public":

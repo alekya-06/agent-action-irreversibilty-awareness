@@ -1,6 +1,6 @@
 {
   "inputs": [
-    "data/toolemu/toolemu_v2.jsonl"
+    "data/toolemu/toolemu_v3.jsonl"
   ],
   "seeds": {
     "42": {
@@ -8,27 +8,27 @@
         "rows": 463,
         "scenarios": 116,
         "labels": {
-          "partially_reversible": 52,
-          "reversible": 333,
-          "irreversible": 78
+          "partially_reversible": 60,
+          "reversible": 332,
+          "irreversible": 71
         }
       },
       "validation": {
         "rows": 55,
         "scenarios": 14,
         "labels": {
-          "partially_reversible": 6,
-          "reversible": 40,
-          "irreversible": 9
+          "partially_reversible": 8,
+          "reversible": 39,
+          "irreversible": 8
         }
       },
       "test": {
         "rows": 49,
         "scenarios": 14,
         "labels": {
-          "reversible": 32,
-          "irreversible": 7,
-          "partially_reversible": 10
+          "reversible": 31,
+          "partially_reversible": 11,
+          "irreversible": 7
         }
       }
     },
@@ -37,9 +37,9 @@
         "rows": 460,
         "scenarios": 116,
         "labels": {
-          "partially_reversible": 53,
-          "reversible": 330,
-          "irreversible": 77
+          "partially_reversible": 64,
+          "reversible": 327,
+          "irreversible": 69
         }
       },
       "validation": {
@@ -66,26 +66,26 @@
         "rows": 463,
         "scenarios": 116,
         "labels": {
-          "partially_reversible": 55,
-          "reversible": 330,
-          "irreversible": 78
+          "partially_reversible": 63,
+          "reversible": 329,
+          "irreversible": 71
         }
       },
       "validation": {
         "rows": 53,
         "scenarios": 14,
         "labels": {
-          "reversible": 38,
-          "irreversible": 9,
-          "partially_reversible": 6
+          "reversible": 37,
+          "partially_reversible": 8,
+          "irreversible": 8
         }
       },
       "test": {
         "rows": 51,
         "scenarios": 14,
         "labels": {
-          "partially_reversible": 7,
-          "reversible": 37,
+          "partially_reversible": 8,
+          "reversible": 36,
           "irreversible": 7
         }
       }

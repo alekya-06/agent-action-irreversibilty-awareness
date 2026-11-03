@@ -1,0 +1,48 @@
+{
+  "examples": 567,
+  "scenarios": 144,
+  "groups": 470,
+  "environment": {
+    "toolemu": 567
+  },
+  "condition": {
+    "backup": 5,
+    "none": 470,
+    "payment_hold": 16,
+    "trash": 6,
+    "undo_send": 52,
+    "version_history": 18
+  },
+  "action_unit": {
+    "single": 567
+  },
+  "label_method": {
+    "design": 567
+  },
+  "binary_label": {
+    "None": 79,
+    "irreversible": 86,
+    "reversible": 402
+  },
+  "label_k1": {
+    "irreversible": 86,
+    "partially_reversible": 79,
+    "reversible": 402
+  },
+  "label_k2": {
+    "irreversible": 86,
+    "partially_reversible": 79,
+    "reversible": 402
+  },
+  "label_k3": {
+    "irreversible": 86,
+    "partially_reversible": 79,
+    "reversible": 402
+  },
+  "contrastive_groups": 97,
+  "rows_in_contrastive_groups": 194,
+  "cases_with_pairs": 144,
+  "cases_total": 144,
+  "unreviewed_pairs_skipped": 0,
+  "calls_skipped_without_label": {}
+}

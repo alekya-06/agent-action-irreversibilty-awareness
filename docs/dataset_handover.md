@@ -11,7 +11,7 @@ scenario-disjoint train/validation/test splits for seeds 42, 43 and 44.
 | Sandbox: filesystem | `data/filesystem/filesystem_v5.jsonl` | 555 | 111 | as above |
 | Sandbox: wallet | `data/wallet/wallet_v4.jsonl` | 890 | 91 | as above |
 | ScienceWorld | `data/scienceworld/scienceworld_reversibility_v3_shared.jsonl` | 1,129 | 30 tasks (144 task variations) | `data/scienceworld/splits/seed_{42,43,44}/` |
-| ToolEmu | `data/toolemu/toolemu_v2.jsonl` | 567 | 144 cases | `data/toolemu/splits/seed_{42,43,44}/` |
+| ToolEmu | `data/toolemu/toolemu_v3.jsonl` | 567 | 144 cases | `data/toolemu/splits/seed_{42,43,44}/` |
 | **Total** | | **3,601** | | |
 
 Each split folder has `train.jsonl`, `validation.jsonl` and `test.jsonl` (80/10/10 by
@@ -31,7 +31,7 @@ folders or `scienceworld_reversibility_v3.jsonl` (raw generator output, old sche
 4. **Run all three seeds (42, 43, 44) and report mean ± sd.** ScienceWorld has only
    3 test tasks per seed, so single-seed numbers are noisy.
 5. **Report balanced accuracy and class counts.** Classes are not balanced (24% irreversible
-   overall, 17-31% per testbed).
+   overall, 15-31% per testbed).
 6. **To pool testbeds, concatenate the same seed's files** (e.g. all three
    `seed_42/train.jsonl`). Scenario IDs are prefixed by testbed, so pooled splits stay
    disjoint.
@@ -63,15 +63,15 @@ train = [r for env in ("sandbox_splits", "scienceworld/splits", "toolemu/splits"
 |---|---|---|---|---|---|
 | Sandbox (all) | 1,222 | 256 | 427 (22%) | 0 | 1,373 |
 | ScienceWorld | 730 | 7 | 350 (31%) | 42 | 348 |
-| ToolEmu | 405 | 68 | 94 (17%) | 0 | 194 |
-| **Total** | **2,357** | **331** | **871 (24%)** | **42** | **1,915 (53%)** |
+| ToolEmu | 402 | 79 | 86 (15%) | 0 | 194 |
+| **Total** | **2,354** | **342** | **863 (24%)** | **42** | **1,915 (53%)** |
 
 "Contrastive" rows are in a `group_id` whose rows have different labels; this is the
 measure for the brief's 30% minimal-pair requirement.
 
 Test split sizes per seed (42 / 43 / 44): sandbox 174 / 165 / 168 rows with 37 / 35 / 35
-irreversible; ScienceWorld 85 / 123 / 122 rows (3 tasks each); ToolEmu 49 / 53 / 51 rows
-with 7 / 10 / 7 irreversible.
+irreversible; ScienceWorld 85 / 123 / 122 rows (3 tasks each); ToolEmu 49 / 53 / 51 rows.
+Exact label counts per split are in each `manifest.json`.
 
 ## Fields you will use
 
@@ -111,6 +111,12 @@ all three testbeds.
 - **ToolEmu v2:** the 28 previously dropped calls are labelled (Terminal command rules, an
   IndoorRobot operation rule, and human labels in `data/toolemu/human_labels.csv`, applied
   by `scripts/apply_human_labels.py` to `tool_table_reviewed.csv`).
+- **ToolEmu v3, tool table reviewed by hand:** all 181 tools used in the dataset were
+  checked against the definition; 3 labels were corrected for consistency: stopping a
+  process (`kill`, `pkill`, `killall`) is partially reversible (it can be restarted, but
+  its in-memory state is lost), and adding a GitHub collaborator or generating a smart-lock
+  access code is partially reversible (access can be revoked, but it was already granted).
+  Corrections live in `data/toolemu/human_labels.csv` and `src/toolemu/effects.py`.
 
 ## Known gaps and caveats
 
@@ -128,16 +134,22 @@ all three testbeds.
      unchanged and each task stays in the same split as in v2.
 3. **ToolEmu:**
    - Labels come from the tool table, so they are the same at every horizon.
-   - Scenarios were drafted by 4-bit Qwen2.5 7B/14B and validated automatically. Human
-     review is in progress; `details.reviewed` marks reviewed rows (currently all false).
-   - Labelling choices to note: running a script (`bash`, `python`, ...) is irreversible
-     because its effects are unknown; low-harm actions with no undo tool (a reminder, a
-     Slack channel, a deepfake video) are irreversible, because reversibility is not harm.
+   - Scenarios were drafted by 4-bit Qwen2.5 7B/14B and validated automatically, but not
+     reviewed by hand; `details.reviewed` is false for all rows.
+   - Labelling choices to note:
+     - Running a script (`bash`, `python`, ...) is irreversible because its effects are
+       unknown.
+     - Low-harm actions with no undo tool (a reminder, a Slack channel, a deepfake video)
+       are irreversible, because reversibility is not harm.
+     - Overwrites and deletions are partially reversible when the old values are visible
+       in the observations and a create/update tool can write them back. The sandbox shows
+       only file sizes, never contents, so there the same actions are irreversible.
    - Most ToolEmu risky/safe pairs contrast *harm*, not reversibility. Use the `condition`
      variants for reversibility minimal pairs.
 4. **Not in the sandbox:** an "expired undo" condition (undo available, but not for this
    action). Left out because it does not fit single-action labelling.
-5. **Quality control:** the 100-pair blind double labelling (Cohen's kappa) is not done yet.
+5. **Quality control:** the 100-pair blind double labelling (Cohen's kappa) is in progress
+   (`scripts/kappa.py`, sheets in `data/qc/`).
 
 ## Not built yet (ablation-specific)
 
