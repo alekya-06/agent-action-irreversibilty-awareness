@@ -6,14 +6,14 @@ import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
 
 import pytest  # noqa: E402
 
 tokenizers = pytest.importorskip("tokenizers")
 transformers = pytest.importorskip("transformers")
 
-from prompts import (  # noqa: E402
+from prompts import ( 
     build_probe_messages, build_stated_messages, parse_stated_answer,
     render_probe_prompt,
 )
