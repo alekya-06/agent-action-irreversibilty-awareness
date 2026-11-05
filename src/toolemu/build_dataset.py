@@ -47,13 +47,11 @@ from typing import Any
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-for _name in ("sandbox", "sandbox_v2"):
-    _common = HERE.parent / _name / "common"
-    if (_common / "labels.py").exists():
-        sys.path.insert(0, str(_common))
-        break
-else:
-    raise ImportError(f"Shared common/ folder not found under {HERE.parent}")
+
+_COMMON = HERE.parent / "common"
+if not (_COMMON / "labels.py").exists():
+    raise ImportError(f"Shared common/ folder not found: {_COMMON}")
+sys.path.insert(0, str(_COMMON))
 
 from effects import (  # noqa: E402
     CONDITION_TEXT, effect_under, load_tool_table, resolve_effect,

@@ -10,7 +10,7 @@ schema, without rerunning ScienceWorld.
 - Adds group_id, condition, action_unit and the top-level cost fields.
 
 Place this file in src/scienceworld/. It uses the shared labels.py and
-schema.py from src/sandbox/common/ (or src/sandbox_v2/common/).
+schema.py from src/common/
 
 Usage (from the project root):
     python src/scienceworld/upgrade_scienceworld.py data/scienceworld/scienceworld_reversibility_v2.jsonl
@@ -25,16 +25,11 @@ from collections import Counter
 from pathlib import Path
 
 _SRC = Path(__file__).resolve().parents[1]
-for _name in ("sandbox", "sandbox_v2"):
-    _common = _SRC / _name / "common"
-    if (_common / "labels.py").exists():
-        sys.path.insert(0, str(_common))
-        break
-else:
-    raise ImportError(
-        f"Could not find the shared common/ folder under {_SRC}/sandbox "
-        f"or {_SRC}/sandbox_v2."
-    )
+
+_COMMON = _SRC / "common"
+if not (_COMMON / "labels.py").exists():
+    raise ImportError(f"Could not find the shared common/ folder at {_COMMON}")
+sys.path.insert(0, str(_COMMON))
 
 from labels import HORIZONS, derive_labels  # noqa: E402
 from schema import check_dataset, read_jsonl, write_jsonl  # noqa: E402

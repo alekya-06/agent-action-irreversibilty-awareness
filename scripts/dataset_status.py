@@ -4,11 +4,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-for name in ("sandbox", "sandbox_v2"):
-    common = Path("src") / name / "common"
-    if (common / "schema.py").exists():
-        sys.path.insert(0, str(common))
-        break
+sys.path.insert(0, str(Path("src") / "common"))
 from schema import check_dataset, summarise  # noqa: E402
 
 SKIP = ("before_", "drafts", "reviews", "fixes", "_summary", "reversibility_v2.jsonl", "legacy", "reversibility_v3.jsonl")

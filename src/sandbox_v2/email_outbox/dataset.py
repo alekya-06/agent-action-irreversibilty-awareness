@@ -1,5 +1,5 @@
 """
-Email outbox dataset in the shared schema (see ../common/schema.py).
+Email outbox dataset in the shared schema (see ../../common/schema.py).
 
 Each (profile, action family) is run under four recovery conditions
 (none, undo, snapshot, undo+snapshot). The variants share a group_id and
@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "common"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "common"))
 
 from schema import check_dataset, make_record, summarise, write_jsonl  # noqa: E402
 

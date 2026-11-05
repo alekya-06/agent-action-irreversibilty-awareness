@@ -26,7 +26,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "common"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "common"))
 
 from labels import EXTENDED_HORIZON, dual_bfs, labels_from_outcome  # noqa: E402
 

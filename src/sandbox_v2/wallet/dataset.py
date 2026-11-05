@@ -1,5 +1,5 @@
 """
-Wallet dataset in the shared schema (see ../common/schema.py).
+Wallet dataset in the shared schema (see ../../common/schema.py).
 
 Every action is run under two recovery conditions (none, undo); the two
 variants share a group_id. All examples built from the same initial wallet
@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "common"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "common"))
 
 from schema import check_dataset, make_record, summarise, write_jsonl  # noqa: E402
 
