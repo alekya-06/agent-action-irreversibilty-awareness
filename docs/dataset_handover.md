@@ -1,4 +1,4 @@
-# Dataset handover (3 November 2026)
+# Dataset handover (5 November 2026)
 
 The labelled data for all three testbeds is built, passes `check_dataset`, and has
 scenario-disjoint train/validation/test splits for seeds 42, 43 and 44.
@@ -18,6 +18,10 @@ Each split folder has `train.jsonl`, `validation.jsonl` and `test.jsonl` (80/10/
 scenario) plus a `manifest.json` with label counts. Do not use files in `legacy/`
 folders or `scienceworld_reversibility_v3.jsonl` (raw generator output, old schema).
 `scripts/dataset_status.py` prints statistics for every current file.
+
+Shared code used by all testbeds (record schema, labelling rule, splits) is in
+`src/common/`. The prompt builder for probes, stated answers and the agent is in
+`src/experiments/prompts.py`.
 
 ## Before you use the data (read this)
 
@@ -117,6 +121,8 @@ all three testbeds.
   its in-memory state is lost), and adding a GitHub collaborator or generating a smart-lock
   access code is partially reversible (access can be revoked, but it was already granted).
   Corrections live in `data/toolemu/human_labels.csv` and `src/toolemu/effects.py`.
+- **Shared code moved to `src/common/`** (from `src/sandbox_v2/common/`). Regenerating every
+  dataset and split after the move produced byte-for-byte identical files.
 
 ## Known gaps and caveats
 
@@ -148,18 +154,12 @@ all three testbeds.
      variants for reversibility minimal pairs.
 4. **Not in the sandbox:** an "expired undo" condition (undo available, but not for this
    action). Left out because it does not fit single-action labelling.
-5. **Quality control:** the 100-pair blind double labelling (Cohen's kappa) is in progress
-   (`scripts/kappa.py`, sheets in `data/qc/`).
+5. **Quality control:** the 100-pair blind double labelling (Cohen's kappa) is prepared
+   but not done yet (`scripts/kappa.py`, sheets in `data/qc/`).
 
 ## Not built yet (ablation-specific)
 
 - Leave-one-environment-out split mode
 - Minimal-pairs-only filter
 
-`src/sandbox_v2/common/splits.py` works on any shared-schema file and is the natural
-place for both.
-
-## Cleanup for later
-
-- Move `src/sandbox_v2/common/` to `src/common/` and update the import paths
-  (`grep -rn "common" src scripts --include='*.py'`).
+`src/common/splits.py` works on any shared-schema file and is the natural place for both.
