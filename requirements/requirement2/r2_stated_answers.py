@@ -7,9 +7,9 @@ the full prompt, the raw reply, the parsed label (None if unparseable; counted,
 never dropped) and the probability of each option letter at the first answer token.
 
 Usage (from the project root):
-  python requirements/r2_stated_answers.py --model Qwen/Qwen2.5-7B-Instruct --limit 20   # quick test
-  python requirements/r2_stated_answers.py --model Qwen/Qwen2.5-7B-Instruct
-  python requirements/r2_stated_answers.py --model meta-llama/Llama-3.1-8B-Instruct
+  python requirements/requirement2/r2_stated_answers.py --limit 20          # quick test with Qwen
+  python requirements/requirement2/r2_stated_answers.py                     # full run with Qwen
+  python requirements/requirement2/r2_stated_answers.py --model llama       # full run with Llama
 
 Resumes automatically: ids already in the output file are skipped. Runs off a
 CUDA GPU write to a "_dev" folder so they never mix with reported results.
@@ -25,8 +25,8 @@ import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parent
-sys.path.insert(0, str(HERE))
+ROOT = HERE.parents[1]
+sys.path.insert(0, str(HERE.parent))  # prompts.py is shared, one level up
 
 from prompts import (  # noqa: E402
     LETTER_TO_LABEL, build_stated_messages, load_toolemu_specs, parse_stated_answer,
@@ -42,6 +42,10 @@ DATA_FILES = [
 TOOLKITS = ROOT / "external" / "ToolEmu" / "assets" / "all_toolkits.json"
 SEED = 0
 
+MODELS = {
+    "qwen": "Qwen/Qwen2.5-7B-Instruct",       # main model 
+    "llama": "meta-llama/Llama-3.1-8B-Instruct",  # second model family
+}
 
 def load_rows(paths: list[str], limit: int | None) -> list[dict]:
     rows = []
@@ -66,13 +70,14 @@ def pick_device():
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="R2 stated answers.")
-    parser.add_argument("--model", required=True)
+    parser.add_argument("--model", default="qwen",help="qwen (default), llama, or a full Hugging Face model name")
     parser.add_argument("--files", nargs="+", default=DATA_FILES)
     parser.add_argument("--out", type=Path, help="default: results/rq2/<model>[_dev]/stated.jsonl")
     parser.add_argument("--limit", type=int, help="only a random sample of N rows (for testing)")
     parser.add_argument("--batch-size", type=int, default=8)
-    parser.add_argument("--max-new-tokens", type=int, default=64)
+    parser.add_argument("--max-new-tokens", type=int, default=32)
     args = parser.parse_args()
+    args.model = MODELS.get(args.model, args.model)
 
     import torch
     import transformers
@@ -98,7 +103,7 @@ def main() -> None:
     tokenizer.padding_side = "left"
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
-    model = AutoModelForCausalLM.from_pretrained(args.model, torch_dtype=dtype).to(device).eval()
+    model = AutoModelForCausalLM.from_pretrained(args.model, dtype=dtype).to(device).eval()
 
     letter_ids = {}
     for letter in "ABC":

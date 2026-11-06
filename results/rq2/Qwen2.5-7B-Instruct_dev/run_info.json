@@ -1,0 +1,20 @@
+{
+  "model": "Qwen/Qwen2.5-7B-Instruct",
+  "device": "mps",
+  "dtype": "torch.float16",
+  "seed": 0,
+  "max_new_tokens": 32,
+  "batch_size": 4,
+  "decoding": "greedy",
+  "torch": "2.14.1",
+  "transformers": "5.22.1",
+  "python": "3.12.15",
+  "data_files": [
+    "data/email_outbox/email_outbox_v5.jsonl",
+    "data/filesystem/filesystem_v5.jsonl",
+    "data/wallet/wallet_v4.jsonl",
+    "data/scienceworld/scienceworld_reversibility_v3_shared.jsonl",
+    "data/toolemu/toolemu_v3.jsonl"
+  ],
+  "started": "2026-11-06 10:53:55"
+}
