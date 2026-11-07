@@ -23,13 +23,14 @@ import random
 import sys
 import time
 from pathlib import Path
+from collections import defaultdict
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 sys.path.insert(0, str(HERE.parent))  # prompts.py is shared, one level up
 
-from prompts import (  # noqa: E402
-    LETTER_TO_LABEL, build_stated_messages, load_toolemu_specs, parse_stated_answer,
+from prompts import (  
+    STATED_VARIANTS, build_stated_messages, load_toolemu_specs, parse_stated_answer,
 )
 
 DATA_FILES = [
@@ -47,14 +48,31 @@ MODELS = {
     "llama": "meta-llama/Llama-3.1-8B-Instruct",  # second model family
 }
 
-def load_rows(paths: list[str], limit: int | None) -> list[dict]:
+def load_rows(paths: list[str], limit: int | None, stratified: int | None = None) -> list[dict]:
     rows = []
     for path in paths:
         with open(ROOT / path, encoding="utf-8") as fh:
             rows += [json.loads(l) for l in fh if l.strip()]
     rows = [r for r in rows if r["label"] != "inconclusive"]
-    if limit:  # a mixed sample across testbeds for quick tests
-        random.Random(SEED).shuffle(rows)
+    rng = random.Random(SEED)
+    if stratified:  # balanced across testbed x label; the same subset every time
+        cells = defaultdict(list)
+        for r in rows:
+            testbed = r["environment"] if r["environment"] in ("scienceworld", "toolemu") else "sandbox"
+            cells[(testbed, r["label"])].append(r)
+        per_cell = stratified // len(cells)
+        chosen, ids = [], set()
+        for key in sorted(cells):
+            options = cells[key][:]
+            rng.shuffle(options)
+            for r in options[:per_cell]:
+                chosen.append(r)
+                ids.add(r["id"])
+        rest = [r for r in rows if r["id"] not in ids]
+        rng.shuffle(rest)
+        return chosen + rest[:stratified - len(chosen)]
+    if limit:
+        rng.shuffle(rows)
         rows = rows[:limit]
     return rows
 
@@ -76,16 +94,21 @@ def main() -> None:
     parser.add_argument("--limit", type=int, help="only a random sample of N rows (for testing)")
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--max-new-tokens", type=int, default=32)
+    parser.add_argument("--variant", choices=sorted(STATED_VARIANTS), default="standard",
+                        help="question variant: standard, reversed (option order), polarity (yes = irreversible)")
+    parser.add_argument("--stratified", type=int, help="a fixed subset of N rows balanced across testbed x label")
     args = parser.parse_args()
     args.model = MODELS.get(args.model, args.model)
 
+    mapping = STATED_VARIANTS[args.variant][1]
     import torch
     import transformers
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
     torch.manual_seed(SEED)
     device, dtype = pick_device()
-    short = args.model.split("/")[-1] + ("" if device == "cuda" else "_dev")
+    short = (args.model.split("/")[-1] + ("" if args.variant == "standard" else f"_{args.variant}")
+               + ("" if device == "cuda" else "_dev"))   
     out = args.out or ROOT / "results" / "rq2" / short / "stated.jsonl"
     out.parent.mkdir(parents=True, exist_ok=True)
 
@@ -93,7 +116,7 @@ def main() -> None:
     if out.exists():
         with out.open(encoding="utf-8") as fh:
             done = {json.loads(l)["id"] for l in fh if l.strip()}
-    rows = [r for r in load_rows(args.files, args.limit) if r["id"] not in done]
+    rows = [r for r in load_rows(args.files, args.limit, args.stratified) if r["id"] not in done]
     print(f"{len(rows)} rows to run ({len(done)} already in {out}); device={device}, dtype={dtype}")
     if not rows:
         return
@@ -118,13 +141,15 @@ def main() -> None:
         "decoding": "greedy", "torch": torch.__version__, "transformers": transformers.__version__,
         "python": platform.python_version(), "data_files": args.files,
         "started": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "variant": args.variant, 
+        "stratified": args.stratified,
     }, indent=2), encoding="utf-8")
 
     t0 = time.time()
     with out.open("a", encoding="utf-8") as fh:
         for start in range(0, len(rows), args.batch_size):
             batch = rows[start:start + args.batch_size]
-            texts = [tokenizer.apply_chat_template(build_stated_messages(r, specs),
+            texts = [tokenizer.apply_chat_template(build_stated_messages(r, specs, variant=args.variant),
                                                    add_generation_prompt=True, tokenize=False)
                      for r in batch]
             enc = tokenizer(texts, return_tensors="pt", padding=True,
@@ -143,8 +168,8 @@ def main() -> None:
                     "id": r["id"], "environment": r["environment"], "scenario_id": r["scenario_id"],
                     "group_id": r["group_id"], "condition": r["condition"],
                     "true_label": r["label"],
-                    "stated_label": parse_stated_answer(reply),
-                    "option_probs": {LETTER_TO_LABEL[L]: (p / mass if mass else None) for L, p in raw.items()},
+                    "stated_label": parse_stated_answer(reply, variant=args.variant),
+                    "option_probs": {mapping[L]: (p / mass if mass else None) for L, p in raw.items()},
                     "letter_mass": mass,
                     "reply": reply,
                     "prompt": texts[i],

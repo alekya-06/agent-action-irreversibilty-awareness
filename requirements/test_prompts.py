@@ -109,3 +109,9 @@ def test_stated_prompt_contains_state_and_action():
 ])
 def test_parse_stated_answer(reply, label):
     assert parse_stated_answer(reply) == label
+
+def test_parse_variants():
+    assert parse_stated_answer("A\nIt is gone.", variant="reversed") == "irreversible"
+    assert parse_stated_answer("C) Nothing changes.", variant="reversed") == "reversible"
+    assert parse_stated_answer("A) Yes, permanent.", variant="polarity") == "irreversible"
+    assert parse_stated_answer("C\nNo, it can be undone.", variant="polarity") == "reversible"
