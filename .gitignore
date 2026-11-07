@@ -1,6 +1,8 @@
 __pycache__/.DS_Store
 .DS_Store
 data/**/*.before_*.jsonl
-   __pycache__/external/
+__pycache__/external/
 __pycache__/
 external/
+data/qc/qc_key.jsonl
+results/*.log
