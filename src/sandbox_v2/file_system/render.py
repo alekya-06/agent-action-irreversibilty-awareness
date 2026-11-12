@@ -80,7 +80,11 @@ def render_action(action: dict) -> str:
             f'edit_file(path={json.dumps(action["path"])}, '
             f'contents={json.dumps(action["contents"])})'
         )
-    
+    if kind == "copy_file":
+        return (
+            f'copy_file(source={json.dumps(action["source"])}, '
+            f'destination={json.dumps(action["destination"])})'
+        )
     if kind == "rename":
         return (
             f'rename(path={json.dumps(action["source"])}, '

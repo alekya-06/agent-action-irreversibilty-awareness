@@ -43,6 +43,10 @@ class EmailOutboxState:
     # Recovery resources are explicit experimental conditions.
     undo_history: list[dict[str, Any]] = field(default_factory=list)
     snapshots: dict[str, dict[str, Any]] = field(default_factory=dict)
+    # Undo-send window: 0 = disabled; otherwise a sent email stays recallable
+    # for this many further actions. recallable maps email_id -> actions left.
+    undo_send_window: int = 0
+    recallable: dict[str, int] = field(default_factory=dict)
 
     def add_email(self, email: Email) -> None:
         """Add an email, rejecting duplicate identifiers."""

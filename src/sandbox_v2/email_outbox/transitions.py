@@ -107,6 +107,20 @@ def transition(
 
         info["external_effect"] = True
 
+        if new_state.undo_send_window > 0:
+            new_state.recallable[email.email_id] = new_state.undo_send_window
+
+    elif action_type == "recall_email":
+        if email.email_id not in new_state.recallable:
+            raise ValueError("This email cannot be recalled (no undo-send window, or it has passed).")
+        for i in range(len(new_state.sent_history) - 1, -1, -1):
+            if new_state.sent_history[i]["email_id"] == email.email_id:
+                del new_state.sent_history[i]
+                break
+        email.status = "queued"
+        email.delivery_status = "pending"
+        del new_state.recallable[email.email_id]
+
     elif action_type == "mark_delivered":
         if email.status != "sent":
             raise ValueError("Only sent emails can be marked delivered.")
@@ -136,6 +150,14 @@ def transition(
 
     else:
         raise ValueError(f"Unhandled action: {action_type}")
+
+    # Every action except the send itself uses up one step of open recall windows.
+    for eid in list(new_state.recallable):
+        if action_type == "send_email" and eid == email_id:
+            continue
+        new_state.recallable[eid] -= 1
+        if new_state.recallable[eid] <= 0:
+            del new_state.recallable[eid]
 
     info["success"] = True
     return new_state, info

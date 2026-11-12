@@ -148,6 +148,23 @@ def transition(fs: FileSystemState, action: dict):
             raise ValueError("Edit does not change the file")
 
         new_fs.files[path] = action["contents"]
+
+    # --------------------------------------------------
+    # 3c. Copy file (e.g. make a backup)
+    # --------------------------------------------------
+    elif action_type == "copy_file":
+        source = normalize_path(action["source"])
+        destination = normalize_path(action["destination"])
+
+        if source not in new_fs.files:
+            raise ValueError(f"Not a file: {source}")
+        if path_exists(new_fs, destination):
+            raise ValueError(f"Destination already exists: {destination}")
+        require_parent_directory(new_fs, destination)
+
+        new_fs.files[destination] = new_fs.files[source]
+        if source in new_fs.metadata:
+            new_fs.metadata[destination] = dict(new_fs.metadata[source])
         
     # --------------------------------------------------
     # 4. Rename file or directory

@@ -42,6 +42,7 @@ VALID_ACTION_TYPES: frozenset[str] = frozenset(
         "delete_draft",
         "queue_email",
         "send_email",
+        "recall_email",
         "mark_delivered",
         "mark_failed",
         "recover_deleted_draft",

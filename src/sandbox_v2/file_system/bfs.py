@@ -44,6 +44,9 @@ def _inverse_action(record):
             "new_name": posixpath.basename(source),
         }
 
+    if action_type == "copy_file":
+        return {"type": "delete_file", "path": action["destination"]}
+
     return None
 
 

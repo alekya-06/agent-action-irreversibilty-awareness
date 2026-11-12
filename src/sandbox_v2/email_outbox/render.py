@@ -28,6 +28,10 @@ CONDITION_TEXT = {
         "Recovery: undo is enabled, and a snapshot of the outbox was saved "
         "before this action."
     ),
+    "undo_send": (
+        "Recovery: a sent email can be recalled for 60 seconds after sending "
+        "(up to 3 actions later). No other undo is enabled and no snapshot has been saved."
+    ),
 }
 
 

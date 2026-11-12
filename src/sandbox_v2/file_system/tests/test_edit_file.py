@@ -39,3 +39,9 @@ def test_rename_with_stale_snapshot_is_reversible():
     result = label_actions(scenario_id="test_rename", initial_fs=make_fs(),
                            actions=[rename], condition="stale_snapshot")
     assert result["labels"]["label"] == "reversible"
+
+def test_copy_is_reversible_without_recovery():
+    copy = {"type": "copy_file", "source": "/docs/thesis.txt", "destination": "/docs/thesis_backup.txt"}
+    result = label_actions(scenario_id="test_copy", initial_fs=make_fs(),
+                           actions=[copy], condition="none")
+    assert result["labels"]["label"] == "reversible"

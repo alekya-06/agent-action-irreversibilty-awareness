@@ -28,17 +28,22 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "common"))
 
-from labels import EXTENDED_HORIZON, dual_bfs, labels_from_outcome  # noqa: E402
+from labels import EXTENDED_HORIZON, dual_bfs, labels_from_outcome  
 
-from experiments import state_key  # noqa: E402
-from state import Email, EmailOutboxState  # noqa: E402
-from transitions import transition  # noqa: E402
+from experiments import state_key  
+from state import Email, EmailOutboxState  
+from transitions import transition  
 
 CONDITIONS = {
     "none": (False, False),
     "undo": (True, False),
     "snapshot": (False, True),
     "undo+snapshot": (True, True),
+}
+# Conditions used by the agent tasks but not (yet) by the dataset generator.
+UNDO_SEND_WINDOW = 3
+EXTRA_CONDITIONS = {
+    "undo_send": (False, False),  # no undo or snapshot; sent emails recallable for 3 actions
 }
 
 EDITABLE = ("sender", "recipients", "cc", "bcc", "subject", "body")
@@ -95,7 +100,11 @@ def label_actions(
     condition: str,
     max_depth: int = EXTENDED_HORIZON,
 ) -> dict[str, Any]:
-    record_undo, record_snapshot = CONDITIONS[condition]
+    
+    record_undo, record_snapshot = {**CONDITIONS, **EXTRA_CONDITIONS}[condition]
+    initial_state = initial_state.clone()
+    if condition == "undo_send":
+        initial_state.undo_send_window = UNDO_SEND_WINDOW
     original = initial_state.clone()
     current = initial_state.clone()
 
@@ -118,6 +127,10 @@ def label_actions(
                 )
     if record_snapshot:
         resource_actions.append({"type": "restore_snapshot"})
+
+    if condition == "undo_send":
+        for email_id in sorted({a["email_id"] for a in actions if a.get("email_id")}):
+            resource_actions.append({"type": "recall_email", "email_id": email_id})
 
     def apply(state: EmailOutboxState, action: dict[str, Any]) -> EmailOutboxState:
         kind = action["type"]
