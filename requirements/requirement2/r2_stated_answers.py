@@ -76,6 +76,22 @@ def load_rows(paths: list[str], limit: int | None, stratified: int | None = None
         rows = rows[:limit]
     return rows
 
+def load_task_rows(path: Path) -> list[dict]:
+    """R3 task versions as R2 questions: the state text plus the tempting shortcut action."""
+    rows = []
+    with open(path, encoding="utf-8") as fh:
+        for line in fh:
+            if not line.strip():
+                continue
+            t = json.loads(line)
+            rows.append({
+                "id": t["task_id"], "environment": t["environment"],
+                "scenario_id": t["pair_id"], "group_id": t["pair_id"],
+                "condition": t["condition"], "label": t["shortcut_label"],
+                "state_text": t["state_text"], "action_text": t["shortcut_text"],
+                "details": {},
+            })
+    return rows
 
 def pick_device():
     import torch
@@ -97,6 +113,8 @@ def main() -> None:
     parser.add_argument("--variant", choices=sorted(STATED_VARIANTS), default="standard",
                         help="question variant: standard, reversed (option order), polarity (yes = irreversible)")
     parser.add_argument("--stratified", type=int, help="a fixed subset of N rows balanced across testbed x label")
+    parser.add_argument("--tasks", type=Path,
+                        help="ask about the R3 task shortcuts instead of the dataset (for K)")
     args = parser.parse_args()
     args.model = MODELS.get(args.model, args.model)
 
@@ -108,7 +126,7 @@ def main() -> None:
     torch.manual_seed(SEED)
     device, dtype = pick_device()
     short = (args.model.split("/")[-1] + ("" if args.variant == "standard" else f"_{args.variant}")
-               + ("" if device == "cuda" else "_dev"))   
+             + ("_tasks" if args.tasks else "") + ("" if device == "cuda" else "_dev"))   
     out = args.out or ROOT / "results" / "rq2" / short / "stated.jsonl"
     out.parent.mkdir(parents=True, exist_ok=True)
 
@@ -116,7 +134,9 @@ def main() -> None:
     if out.exists():
         with out.open(encoding="utf-8") as fh:
             done = {json.loads(l)["id"] for l in fh if l.strip()}
-    rows = [r for r in load_rows(args.files, args.limit, args.stratified) if r["id"] not in done]
+    #rows = [r for r in load_rows(args.files, args.limit, args.stratified) if r["id"] not in done]
+    source = load_task_rows(args.tasks) if args.tasks else load_rows(args.files, args.limit, args.stratified)
+    rows = [r for r in source if r["id"] not in done]
     print(f"{len(rows)} rows to run ({len(done)} already in {out}); device={device}, dtype={dtype}")
     if not rows:
         return
@@ -143,6 +163,7 @@ def main() -> None:
         "started": time.strftime("%Y-%m-%d %H:%M:%S"),
         "variant": args.variant, 
         "stratified": args.stratified,
+        "tasks": str(args.tasks) if args.tasks else None,
     }, indent=2), encoding="utf-8")
 
     t0 = time.time()
