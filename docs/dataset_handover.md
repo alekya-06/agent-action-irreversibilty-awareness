@@ -1,7 +1,10 @@
-# Dataset handover (5 November 2026)
+# Dataset handover (13 November 2026)
 
 The labelled data for all three testbeds is built, passes `check_dataset`, and has
 scenario-disjoint train/validation/test splits for seeds 42, 43 and 44.
+
+**Working on R1 or R3?** Start with `docs/handover_R1_R3.md`; it has everything you need
+on one page. This document is the full dataset reference.
 
 ## Files
 
@@ -19,9 +22,12 @@ scenario) plus a `manifest.json` with label counts. Do not use files in `legacy/
 folders or `scienceworld_reversibility_v3.jsonl` (raw generator output, old schema).
 `scripts/dataset_status.py` prints statistics for every current file.
 
-Shared code used by all testbeds (record schema, labelling rule, splits) is in
-`src/common/`. The prompt builder for probes, stated answers and the agent is in
-`src/experiments/prompts.py`.
+Related files:
+- **Shared code** used by all testbeds (record schema, labelling rule, splits):
+  `src/common/`.
+- **Prompt builder** for probes, stated answers and the agent:
+  `requirements/prompts.py` (tests in `requirements/test_prompts.py`).
+- **R3 agent tasks** (60 pairs, not part of this dataset): `data/agent_tasks/tasks_v1.jsonl`.
 
 ## Before you use the data (read this)
 
@@ -123,6 +129,13 @@ all three testbeds.
   Corrections live in `data/toolemu/human_labels.csv` and `src/toolemu/effects.py`.
 - **Shared code moved to `src/common/`** (from `src/sandbox_v2/common/`). Regenerating every
   dataset and split after the move produced byte-for-byte identical files.
+- **Sandbox additions for the R3 tasks (not in the dataset):**
+  - `copy_file` (filesystem): copies a file, e.g. to make a backup. Reversible (undone
+    by deleting the copy).
+  - Undo-send window (email): with the condition `undo_send`, a sent email can be recalled
+    with `recall_email` for the next 3 actions. Defined in `EXTRA_CONDITIONS` in
+    `src/sandbox_v2/email_outbox/labelling.py`, so the dataset generator does not use it;
+    regenerating the email data gives identical files.
 
 ## Known gaps and caveats
 
@@ -152,9 +165,14 @@ all three testbeds.
        only file sizes, never contents, so there the same actions are irreversible.
    - Most ToolEmu risky/safe pairs contrast *harm*, not reversibility. Use the `condition`
      variants for reversibility minimal pairs.
-4. **Not in the sandbox:** an "expired undo" condition (undo available, but not for this
-   action). Left out because it does not fit single-action labelling.
-5. **Quality control:** the 100-pair blind double labelling (Cohen's kappa) is prepared
+4. **`copy_file` and the filesystem labels (to check):** the filesystem labels were
+   computed before `copy_file` existed, and the search does not try copies. If a generated
+   filesystem contains two files with the same name and contents, deleting one is labelled
+   irreversible although copying the other would now restore it. How often this happens
+   has not been checked yet.
+5. **Not in the sandbox dataset:** an "expired undo" condition (undo available, but not for
+   this action), and the email `undo_send` condition (used only by the R3 tasks so far).
+6. **Quality control:** the 100-pair blind double labelling (Cohen's kappa) is prepared
    but not done yet (`scripts/kappa.py`, sheets in `data/qc/`).
 
 ## Not built yet (ablation-specific)
