@@ -1,0 +1,42 @@
+[
+  {
+    "model": "qwen",
+    "direction": "sandbox_to_scienceworld",
+    "balanced_accuracy_mean": 0.48076108914218446,
+    "balanced_accuracy_std": 0.05333186910462086,
+    "macro_f1_mean": 0.4257252732742929,
+    "macro_f1_std": 0.02755483963942982,
+    "auroc_mean": 0.45761475679063685,
+    "auroc_std": 0.13277057136987425
+  },
+  {
+    "model": "llama",
+    "direction": "sandbox_to_scienceworld",
+    "balanced_accuracy_mean": 0.4972204500717039,
+    "balanced_accuracy_std": 0.03475610589616809,
+    "macro_f1_mean": 0.4168495069196587,
+    "macro_f1_std": 0.061635699212944595,
+    "auroc_mean": 0.5298090694358707,
+    "auroc_std": 0.07517943714016569
+  },
+  {
+    "model": "qwen",
+    "direction": "scienceworld_to_sandbox",
+    "balanced_accuracy_mean": 0.5071428571428571,
+    "balanced_accuracy_std": 0.012371791482634857,
+    "macro_f1_mean": 0.29915231219394994,
+    "macro_f1_std": 0.17927310198990784,
+    "auroc_mean": 0.5013199701985388,
+    "auroc_std": 0.023356927824343125
+  },
+  {
+    "model": "llama",
+    "direction": "scienceworld_to_sandbox",
+    "balanced_accuracy_mean": 0.46988028757574024,
+    "balanced_accuracy_std": 0.08422541265669391,
+    "macro_f1_mean": 0.3728157790212642,
+    "macro_f1_std": 0.04650002441013451,
+    "auroc_mean": 0.46952501831056165,
+    "auroc_std": 0.05978153431741363
+  }
+]

@@ -1,0 +1,13 @@
+model,seed,direction,source,target,representation,best_layer,target_test_n,balanced_accuracy,macro_f1,auroc
+llama,42,sandbox_to_scienceworld,sandbox,scienceworld,last_action_token,11,76,0.5357142857142857,0.4333275533206173,0.6116071428571429
+llama,42,scienceworld_to_sandbox,scienceworld,sandbox,last_action_token,11,152,0.5608695652173913,0.3199557032115172,0.46345475910693307
+llama,43,sandbox_to_scienceworld,sandbox,scienceworld,last_action_token,10,113,0.46814218645204564,0.3486495388669302,0.5140845070422535
+llama,43,scienceworld_to_sandbox,scienceworld,sandbox,last_action_token,24,144,0.4541284403669725,0.4074074074074074,0.5321100917431192
+llama,44,sandbox_to_scienceworld,sandbox,scienceworld,last_action_token,15,120,0.4878048780487805,0.4685714285714286,0.4637355584082157
+llama,44,scienceworld_to_sandbox,scienceworld,sandbox,last_action_token,10,147,0.39464285714285713,0.3910842264448681,0.4130102040816327
+qwen,42,sandbox_to_scienceworld,sandbox,scienceworld,last_action_token,12,76,0.4214285714285715,0.4242424242424242,0.3294642857142857
+qwen,42,scienceworld_to_sandbox,scienceworld,sandbox,last_action_token,27,152,0.5,0.19576719576719576,0.5280846063454759
+qwen,43,sandbox_to_scienceworld,sandbox,scienceworld,last_action_token,3,113,0.49614352783366866,0.45399159663865546,0.5945674044265594
+qwen,43,scienceworld_to_sandbox,scienceworld,sandbox,last_action_token,26,144,0.5,0.19553072625698323,0.48505897771952816
+qwen,44,sandbox_to_scienceworld,sandbox,scienceworld,last_action_token,10,120,0.5247111681643132,0.39894179894179893,0.4488125802310654
+qwen,44,scienceworld_to_sandbox,scienceworld,sandbox,last_action_token,10,147,0.5214285714285715,0.5061590145576708,0.49081632653061225
