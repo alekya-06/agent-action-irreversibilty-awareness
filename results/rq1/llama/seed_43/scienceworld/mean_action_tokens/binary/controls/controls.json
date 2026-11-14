@@ -1,0 +1,93 @@
+{
+  "model": "llama",
+  "seed": 43,
+  "environment": "scienceworld",
+  "representation": "mean_action_tokens",
+  "task": "binary",
+  "controls": {
+    "majority": {
+      "control": "majority",
+      "majority_class": "reversible",
+      "validation": {
+        "balanced_accuracy": 0.5,
+        "macro_f1": 0.42276422764227645,
+        "auroc": null
+      },
+      "test": {
+        "balanced_accuracy": 0.5,
+        "macro_f1": 0.3858695652173913,
+        "auroc": null
+      },
+      "class_counts_train": {
+        "irreversible": 289,
+        "reversible": 607
+      },
+      "class_counts_validation": {
+        "irreversible": 19,
+        "reversible": 52
+      },
+      "class_counts_test": {
+        "irreversible": 42,
+        "reversible": 71
+      }
+    },
+    "lexical_bow": {
+      "control": "lexical_bow",
+      "input": "action_text_only",
+      "validation": {
+        "balanced_accuracy": 0.9903846153846154,
+        "macro_f1": 0.9823251182474484,
+        "auroc": 0.9979757085020242
+      },
+      "test": {
+        "balanced_accuracy": 0.9290744466800804,
+        "macro_f1": 0.9249169435215947,
+        "auroc": 0.971830985915493
+      }
+    },
+    "shuffled_labels": {
+      "control": "shuffled_labels",
+      "layer": 3,
+      "shuffle_seed": 12345,
+      "test": {
+        "balanced_accuracy": 0.528672032193159,
+        "macro_f1": 0.45410628019323673,
+        "auroc": 0.6857813547954393
+      }
+    },
+    "action_identity_hewitt_liang": {
+      "control": "action_identity_hewitt_liang",
+      "layer": 3,
+      "random_seed": 12345,
+      "num_action_verbs": 19,
+      "control_target_test": {
+        "balanced_accuracy": 0.9875,
+        "macro_f1": 0.9902695255317318,
+        "auroc": 1.0
+      }
+    },
+    "layer_0_probe": {
+      "control": "layer_0_probe",
+      "layer": 0,
+      "test": {
+        "balanced_accuracy": 0.6309523809523809,
+        "macro_f1": 0.6179517940887774,
+        "auroc": 0.9507042253521126
+      }
+    },
+    "lexical_bow_minimal_pairs": {
+      "control": "lexical_bow",
+      "input": "action_text_only",
+      "validation": {
+        "balanced_accuracy": 1.0,
+        "macro_f1": 1.0,
+        "auroc": 0.9999999999999999
+      },
+      "test": {
+        "balanced_accuracy": 0.904040404040404,
+        "macro_f1": 0.899749373433584,
+        "auroc": 0.9444444444444444
+      }
+    }
+  }
+}

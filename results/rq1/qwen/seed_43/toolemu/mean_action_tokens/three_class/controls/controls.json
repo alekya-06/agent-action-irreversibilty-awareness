@@ -1,0 +1,96 @@
+{
+  "model": "qwen",
+  "seed": 43,
+  "environment": "toolemu",
+  "representation": "mean_action_tokens",
+  "task": "three_class",
+  "controls": {
+    "majority": {
+      "control": "majority",
+      "majority_class": "reversible",
+      "validation": {
+        "balanced_accuracy": 0.3333333333333333,
+        "macro_f1": 0.28368794326241137,
+        "auroc": null
+      },
+      "test": {
+        "balanced_accuracy": 0.3333333333333333,
+        "macro_f1": 0.26515151515151514,
+        "auroc": null
+      },
+      "class_counts_train": {
+        "irreversible": 69,
+        "partially_reversible": 64,
+        "reversible": 327
+      },
+      "class_counts_validation": {
+        "irreversible": 7,
+        "partially_reversible": 7,
+        "reversible": 40
+      },
+      "class_counts_test": {
+        "irreversible": 10,
+        "partially_reversible": 8,
+        "reversible": 35
+      }
+    },
+    "lexical_bow": {
+      "control": "lexical_bow",
+      "input": "action_text_only",
+      "validation": {
+        "balanced_accuracy": 0.38095238095238093,
+        "macro_f1": 0.37007168458781364,
+        "auroc": 0.9051481762917933
+      },
+      "test": {
+        "balanced_accuracy": 0.45714285714285713,
+        "macro_f1": 0.45087014725568936,
+        "auroc": 0.8895164267257291
+      }
+    },
+    "shuffled_labels": {
+      "control": "shuffled_labels",
+      "layer": 11,
+      "shuffle_seed": 12345,
+      "test": {
+        "balanced_accuracy": 0.3333333333333333,
+        "macro_f1": 0.31259968102073366,
+        "auroc": 0.4523655715516181
+      }
+    },
+    "action_identity_hewitt_liang": {
+      "control": "action_identity_hewitt_liang",
+      "layer": 11,
+      "random_seed": 12345,
+      "num_action_verbs": 181,
+      "control_target_test": {
+        "balanced_accuracy": 0.6803751803751803,
+        "macro_f1": 0.6786437246963563,
+        "auroc": 0.8604774976211585
+      }
+    },
+    "layer_0_probe": {
+      "control": "layer_0_probe",
+      "layer": 0,
+      "test": {
+        "balanced_accuracy": 0.3333333333333333,
+        "macro_f1": 0.26515151515151514,
+        "auroc": 0.703654485049834
+      }
+    },
+    "lexical_bow_minimal_pairs": {
+      "control": "lexical_bow",
+      "input": "action_text_only",
+      "validation": {
+        "balanced_accuracy": 0.3333333333333333,
+        "macro_f1": 0.2222222222222222,
+        "auroc": 0.7191142191142191
+      },
+      "test": {
+        "balanced_accuracy": 0.3333333333333333,
+        "macro_f1": 0.2222222222222222,
+        "auroc": 0.7202380952380952
+      }
+    }
+  }
+}

@@ -518,19 +518,54 @@ def make_model(multiclass: bool = False) -> LogisticRegression:
     )
 
 
+def aligned_predict_proba(
+    model: Any,
+    X: np.ndarray,
+    labels: tuple[str, ...],
+) -> np.ndarray:
+    """Return class probabilities in the project's fixed label order.
+
+    scikit-learn returns predict_proba columns in ``model.classes_`` order,
+    not necessarily in the order used by the project constants. Keeping the
+    columns aligned is essential for AUROC, especially because
+    ``irreversible`` is not the first label in BINARY_LABELS.
+    """
+    raw_prob = model.predict_proba(X)
+    classes = [str(value) for value in model.classes_]
+    expected = list(labels)
+
+    if set(classes) != set(expected):
+        raise ValueError(
+            "Classifier probability classes do not match the requested "
+            f"labels. classes_={classes}, labels={expected}"
+        )
+
+    column_indices = [
+        classes.index(label)
+        for label in expected
+    ]
+
+    return raw_prob[:, column_indices]
+
+
 def fit_predict(
     X_train: np.ndarray,
     y_train: np.ndarray,
     X_eval: np.ndarray,
     multiclass: bool,
+    labels: tuple[str, ...],
 ) -> tuple[LogisticRegression, np.ndarray, np.ndarray]:
-    """Fit the probe and return model, predictions and probabilities."""
+    """Fit the probe and return model, predictions and aligned probabilities."""
     model = make_model(multiclass=multiclass)
 
     model.fit(X_train, y_train)
 
     pred = model.predict(X_eval)
-    prob = model.predict_proba(X_eval)
+    prob = aligned_predict_proba(
+        model,
+        X_eval,
+        labels,
+    )
 
     return model, pred, prob
 
@@ -576,18 +611,39 @@ def metrics(
         if len(labels) == 2:
             positive_index = list(labels).index("irreversible")
 
+            # sklearn treats the larger string label as the positive class
+            # when y_true contains strings. That would make "reversible"
+            # positive because it sorts after "irreversible". The project
+            # defines irreversible as the positive class, so encode it
+            # explicitly as 1 and reversible as 0.
+            y_true_binary = np.asarray(
+                [1 if value == "irreversible" else 0 for value in y_true],
+                dtype=int,
+            )
+
             result["auroc"] = float(
                 roc_auc_score(
-                    y_true,
+                    y_true_binary,
                     y_prob[:, positive_index],
                 )
             )
         else:
+            # scikit-learn requires multiclass ``labels`` to be ordered.
+            # The project label order is fixed as:
+            # reversible, partially_reversible, irreversible.
+            # Encode the labels to 0, 1, 2 in that project order while
+            # keeping the probability columns in the same aligned order.
+            label_to_index = {label: index for index, label in enumerate(labels)}
+            y_true_multiclass = np.asarray(
+                [label_to_index[value] for value in y_true],
+                dtype=int,
+            )
+
             result["auroc"] = float(
                 roc_auc_score(
-                    y_true,
+                    y_true_multiclass,
                     y_prob,
-                    labels=list(labels),
+                    labels=list(range(len(labels))),
                     multi_class="ovr",
                     average="macro",
                 )
@@ -666,18 +722,43 @@ def bootstrap_ci(
                         "irreversible"
                     )
 
+                    # Keep the bootstrap AUROC convention identical to
+                    # the main metric: irreversible = 1, reversible = 0.
+                    sample_true_binary = np.asarray(
+                        [
+                            1 if value == "irreversible"
+                            else 0
+                            for value in sample_true
+                        ],
+                        dtype=int,
+                    )
+
                     auc = roc_auc_score(
-                        sample_true,
+                        sample_true_binary,
                         y_prob[
                             indices,
                             positive_index,
                         ],
                     )
                 else:
+                    # Use the same project-defined numeric class order as
+                    # the main multiclass AUROC calculation.
+                    label_to_index = {
+                        label: index
+                        for index, label in enumerate(labels)
+                    }
+                    sample_true_multiclass = np.asarray(
+                        [
+                            label_to_index[value]
+                            for value in sample_true
+                        ],
+                        dtype=int,
+                    )
+
                     auc = roc_auc_score(
-                        sample_true,
+                        sample_true_multiclass,
                         y_prob[indices],
-                        labels=list(labels),
+                        labels=list(range(len(labels))),
                         multi_class="ovr",
                         average="macro",
                     )
@@ -796,6 +877,7 @@ def evaluate_validation_layer(
         y[train_indices],
         X[validation_indices],
         multiclass=multiclass,
+        labels=labels,
     )
 
     val_metrics = metrics(
@@ -910,8 +992,10 @@ def train_test_best_layer(
         X[test_indices]
     )
 
-    test_prob = model.predict_proba(
-        X[test_indices]
+    test_prob = aligned_predict_proba(
+        model,
+        X[test_indices],
+        labels,
     )
 
     test_metrics = metrics(
@@ -1038,7 +1122,7 @@ def run_bow(
     classifier = LogisticRegression(
         penalty="l2",
         C=LOGISTIC_C,
-        solver="liblinear",
+        solver="lbfgs",
         max_iter=LOGISTIC_MAX_ITER,
     )
 
@@ -1080,7 +1164,11 @@ def run_bow(
         )
 
         y_pred = pipeline.predict(texts)
-        y_prob = pipeline.predict_proba(texts)
+        y_prob = aligned_predict_proba(
+            pipeline,
+            texts,
+            labels,
+        )
 
         return metrics(
             y_true,
@@ -1139,8 +1227,10 @@ def run_shuffled_label_control(
         X[test_indices]
     )
 
-    test_prob = model.predict_proba(
-        X[test_indices]
+    test_prob = aligned_predict_proba(
+        model,
+        X[test_indices],
+        labels,
     )
 
     test_metrics = metrics(
@@ -1176,7 +1266,8 @@ def run_action_identity_control(
 
     Therefore:
         control_target_test
-    is the meaningful metric.
+    is the meaningful metric. The random mapping is constrained only enough
+    to ensure every required control class occurs in the training split.
 
     We do NOT report the classifier's predictions against the true
     reversibility labels as if that were a reversibility probe.
@@ -1195,30 +1286,59 @@ def run_action_identity_control(
             "Action-identity control found no action verbs."
         )
 
-    verb_to_label = {
-        verb: labels[
-            int(
-                rng.integers(
-                    0,
-                    len(labels),
-                )
-            )
-        ]
-        for verb in verbs
-    }
-
     train_indices, _, test_indices = split_indices(rows)
 
-    control_train_y = np.array(
-        [
-            verb_to_label[
-                action_verb(
-                    rows[i]["action_text"]
+    train_verbs = sorted(
+        {
+            action_verb(rows[i]["action_text"])
+            for i in train_indices
+        }
+    )
+
+    if len(train_verbs) < len(labels):
+        raise ValueError(
+            "Action-identity control cannot assign all required control "
+            f"classes: only {len(train_verbs)} distinct action verbs occur "
+            f"in training, but {len(labels)} labels are required."
+        )
+
+    # Random fixed labels per verb, with rejection sampling only to ensure
+    # every classifier class is represented in training. This preserves the
+    # intended random action-identity control while preventing an invalid
+    # one-class/two-class training target by chance.
+    for _ in range(10000):
+        verb_to_label = {
+            verb: labels[
+                int(
+                    rng.integers(
+                        0,
+                        len(labels),
+                    )
                 )
             ]
-            for i in train_indices
-        ]
-    )
+            for verb in verbs
+        }
+
+        trial_train_y = np.array(
+            [
+                verb_to_label[
+                    action_verb(
+                        rows[i]["action_text"]
+                    )
+                ]
+                for i in train_indices
+            ]
+        )
+
+        if set(trial_train_y) == set(labels):
+            break
+    else:
+        raise RuntimeError(
+            "Could not generate a random fixed-label action-identity "
+            "mapping containing every required class in training."
+        )
+
+    control_train_y = trial_train_y
 
     control_test_y = np.array(
         [
@@ -1244,8 +1364,10 @@ def run_action_identity_control(
         X[test_indices]
     )
 
-    control_prob = model.predict_proba(
-        X[test_indices]
+    control_prob = aligned_predict_proba(
+        model,
+        X[test_indices],
+        labels,
     )
 
     return {
@@ -1597,16 +1719,27 @@ def run_environment_r1(
             continue
 
         # Original indices within environment_metadata.
+        task_row_ids = {
+            row["id"]
+            for row in task_rows
+        }
+
         task_local_indices = np.array(
             [
                 i
                 for i, row in enumerate(
                     environment_metadata
                 )
-                if row in task_rows
+                if row["id"] in task_row_ids
             ],
             dtype=int,
         )
+
+        if len(task_local_indices) != len(task_rows):
+            raise ValueError(
+                f"{environment}/{task_name}: task-row alignment "
+                "failed between metadata and hidden states."
+            )
 
         task_hidden = environment_hidden[
             :,
@@ -1755,7 +1888,7 @@ def run_environment_r1(
 
             if (
                 all_probe_result is not None
-                and all_probe_result.get("status") == "ok"
+                and all_probe_result.get("status", "ok") == "ok"
             ):
                 best_layer = all_probe_result["best_layer"]
 

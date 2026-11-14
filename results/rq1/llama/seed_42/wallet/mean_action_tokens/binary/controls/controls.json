@@ -1,0 +1,93 @@
+{
+  "model": "llama",
+  "seed": 42,
+  "environment": "wallet",
+  "representation": "mean_action_tokens",
+  "task": "binary",
+  "controls": {
+    "majority": {
+      "control": "majority",
+      "majority_class": "reversible",
+      "validation": {
+        "balanced_accuracy": 0.5,
+        "macro_f1": 0.4230769230769231,
+        "auroc": null
+      },
+      "test": {
+        "balanced_accuracy": 0.5,
+        "macro_f1": 0.4338235294117647,
+        "auroc": null
+      },
+      "class_counts_train": {
+        "irreversible": 116,
+        "reversible": 460
+      },
+      "class_counts_validation": {
+        "irreversible": 12,
+        "reversible": 33
+      },
+      "class_counts_test": {
+        "irreversible": 18,
+        "reversible": 59
+      }
+    },
+    "lexical_bow": {
+      "control": "lexical_bow",
+      "input": "action_text_only",
+      "validation": {
+        "balanced_accuracy": 0.5265151515151515,
+        "macro_f1": 0.49248120300751874,
+        "auroc": 0.8181818181818182
+      },
+      "test": {
+        "balanced_accuracy": 0.5193032015065914,
+        "macro_f1": 0.48283582089552235,
+        "auroc": 0.8474576271186441
+      }
+    },
+    "shuffled_labels": {
+      "control": "shuffled_labels",
+      "layer": 6,
+      "shuffle_seed": 12345,
+      "test": {
+        "balanced_accuracy": 0.5,
+        "macro_f1": 0.4338235294117647,
+        "auroc": 0.8785310734463276
+      }
+    },
+    "action_identity_hewitt_liang": {
+      "control": "action_identity_hewitt_liang",
+      "layer": 6,
+      "random_seed": 12345,
+      "num_action_verbs": 8,
+      "control_target_test": {
+        "balanced_accuracy": 1.0,
+        "macro_f1": 1.0,
+        "auroc": 1.0
+      }
+    },
+    "layer_0_probe": {
+      "control": "layer_0_probe",
+      "layer": 0,
+      "test": {
+        "balanced_accuracy": 0.5,
+        "macro_f1": 0.4338235294117647,
+        "auroc": 0.8474576271186441
+      }
+    },
+    "lexical_bow_minimal_pairs": {
+      "control": "lexical_bow",
+      "input": "action_text_only",
+      "validation": {
+        "balanced_accuracy": 0.519927536231884,
+        "macro_f1": 0.4642857142857143,
+        "auroc": 0.7391304347826086
+      },
+      "test": {
+        "balanced_accuracy": 0.5134920634920634,
+        "macro_f1": 0.4453488372093023,
+        "auroc": 0.7428571428571429
+      }
+    }
+  }
+}

@@ -76,6 +76,7 @@ def get_environment_info() -> dict:
     environment can be reported later.
     """
     cuda_available = torch.cuda.is_available()
+    mps_available = torch.backends.mps.is_available()
 
     gpu_info = []
 
@@ -106,6 +107,15 @@ def get_environment_info() -> dict:
         "cuda_version": torch.version.cuda,
         "gpu_count": torch.cuda.device_count() if cuda_available else 0,
         "gpus": gpu_info,
+        "mps_available": mps_available,
+        "mps_built": torch.backends.mps.is_built(),
+        "compute_backend": (
+            "cuda"
+            if cuda_available
+            else "mps"
+            if mps_available
+            else "cpu"
+        ),
     }
 
 
@@ -128,14 +138,30 @@ def extract(
       - the exact rendered prompt and action-token positions are recorded
 
     Output:
-      results/rq1/<model>/seed_<seed>/
+        results/rq1/<model>/seed_<seed>/
     """
 
-    if not torch.cuda.is_available():
+    # Select the available GPU backend.
+    #
+    # On Apple Silicon Macs, MPS is used with float16.
+    # On CUDA systems, the original bfloat16 configuration is retained.
+    if torch.backends.mps.is_available():
+        device = torch.device("mps")
+        dtype = torch.float16
+    elif torch.cuda.is_available():
+        device = torch.device("cuda")
+        dtype = torch.bfloat16
+    else:
         raise RuntimeError(
-            "CUDA GPU is required for R1 extraction. "
-            "Do not run the full extraction on the Mac."
+            "A supported GPU backend is required for R1 extraction. "
+            "MPS or CUDA must be available."
         )
+
+    print(
+        f"Using compute backend: {device.type} "
+        f"with dtype={dtype}",
+        flush=True,
+    )
 
     if batch_size < 1:
         raise ValueError("batch_size must be at least 1")
@@ -192,10 +218,9 @@ def extract(
 
     model = AutoModelForCausalLM.from_pretrained(
         model_id,
-        torch_dtype=torch.bfloat16,
-        device_map="cuda",
+        torch_dtype=dtype,
     )
-
+    model = model.to(device)
     model.eval()
 
     records = load_records(seed)
@@ -273,8 +298,8 @@ def extract(
                 add_special_tokens=False,
             )
 
-            input_ids = encoded["input_ids"].to("cuda")
-            attention_mask = encoded["attention_mask"].to("cuda")
+            input_ids = encoded["input_ids"].to(device)
+            attention_mask = encoded["attention_mask"].to(device)
 
             # Right padding means the original action-token positions
             # returned by render_probe_prompt() remain unchanged.
@@ -420,7 +445,10 @@ def extract(
             del attention_mask
             del encoded
 
-            torch.cuda.empty_cache()
+            if device.type == "cuda":
+                torch.cuda.empty_cache()
+            elif device.type == "mps":
+                torch.mps.empty_cache()
 
     finally:
         metadata_file.close()

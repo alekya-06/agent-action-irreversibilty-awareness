@@ -1,0 +1,94 @@
+{
+  "model": "qwen",
+  "seed": 44,
+  "environment": "filesystem",
+  "representation": "last_action_token",
+  "task": "three_class",
+  "controls": {
+    "majority": {
+      "control": "majority",
+      "majority_class": "reversible",
+      "validation": {
+        "balanced_accuracy": 0.5,
+        "macro_f1": 0.2601626016260163,
+        "auroc": null
+      },
+      "test": {
+        "balanced_accuracy": 0.5,
+        "macro_f1": 0.28205128205128205,
+        "auroc": null
+      },
+      "class_counts_train": {
+        "irreversible": 132,
+        "partially_reversible": 18,
+        "reversible": 295
+      },
+      "class_counts_validation": {
+        "irreversible": 18,
+        "reversible": 32
+      },
+      "class_counts_test": {
+        "irreversible": 16,
+        "reversible": 44
+      }
+    },
+    "lexical_bow": {
+      "control": "lexical_bow",
+      "input": "action_text_only",
+      "validation": {
+        "balanced_accuracy": 0.5,
+        "macro_f1": 0.2601626016260163,
+        "auroc": NaN
+      },
+      "test": {
+        "balanced_accuracy": 0.5,
+        "macro_f1": 0.28205128205128205,
+        "auroc": NaN
+      }
+    },
+    "shuffled_labels": {
+      "control": "shuffled_labels",
+      "layer": 4,
+      "shuffle_seed": 12345,
+      "test": {
+        "balanced_accuracy": 0.4943181818181818,
+        "macro_f1": 0.3194444444444444,
+        "auroc": NaN
+      }
+    },
+    "action_identity_hewitt_liang": {
+      "control": "action_identity_hewitt_liang",
+      "layer": 4,
+      "random_seed": 12345,
+      "num_action_verbs": 6,
+      "control_target_test": {
+        "balanced_accuracy": 1.0,
+        "macro_f1": 1.0,
+        "auroc": 1.0
+      }
+    },
+    "layer_0_probe": {
+      "control": "layer_0_probe",
+      "layer": 0,
+      "test": {
+        "balanced_accuracy": 0.5,
+        "macro_f1": 0.28205128205128205,
+        "auroc": NaN
+      }
+    },
+    "lexical_bow_minimal_pairs": {
+      "control": "lexical_bow",
+      "input": "action_text_only",
+      "validation": {
+        "balanced_accuracy": 0.5,
+        "macro_f1": 0.25,
+        "auroc": NaN
+      },
+      "test": {
+        "balanced_accuracy": 0.5,
+        "macro_f1": 0.25,
+        "auroc": NaN
+      }
+    }
+  }
+}
