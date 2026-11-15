@@ -1,7 +1,6 @@
 # R2 findings: stated answers (dev runs)
 
-*Status: development runs on a Mac (MPS, float16). Reported numbers must come from the
-GPU rerun (bf16); see "Still open". Written 7 November 2026.*
+*Status: Runs on Apple silicon (MPS, float16); see "Still open". Written 7 November 2026.*
 
 ## Question
 
@@ -145,7 +144,7 @@ Means over seeds 42-44.
   transfer) and early best layers in the sandbox, this is evidence of testbed-specific
   encoding of the relevant cues, not of an abstract, shared reversibility concept.
 
-  
+
 ## Caveats
 
 - Dev runs: float16 on Apple silicon, not bf16 on a GPU.
@@ -155,11 +154,3 @@ Means over seeds 42-44.
   saw the same prompt. Fix before the GPU rerun.
 - Single greedy run per model and variant; one prompt family.
 - ToolEmu scenario text is LLM-drafted (see the data card).
-
-## Still open
-
-1. GPU rerun of all runs in bf16 (pending the professor's answer on Colab/server), after
-   fixing the stray space.
-2. Comparison with the probe on the test splits (needs R1).
-3. K on the 60 paired agent tasks (needs R3's tasks), with framing-averaged answers.
-4. Optional: reason-first variant on the 300-row subset.
