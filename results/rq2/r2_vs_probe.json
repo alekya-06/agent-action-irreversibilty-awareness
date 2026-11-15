@@ -1,0 +1,290 @@
+{
+  "Qwen2.5-7B-Instruct": {
+    "per_seed": [
+      {
+        "n": 266,
+        "agreement": 0.5300751879699248,
+        "kappa_stated_probe": 0.05641636869288836,
+        "ba_probe": 0.9510365099009901,
+        "ba_stated": 0.5436262376237624,
+        "both_right": 0.5150375939849624,
+        "probe_right_stated_wrong": 0.45112781954887216,
+        "stated_right_probe_wrong": 0.018796992481203006,
+        "both_wrong": 0.015037593984962405
+      },
+      {
+        "n": 302,
+        "agreement": 0.5794701986754967,
+        "kappa_stated_probe": 0.19087802202438697,
+        "ba_probe": 0.942261427425822,
+        "ba_stated": 0.6063886661320503,
+        "both_right": 0.5463576158940397,
+        "probe_right_stated_wrong": 0.40066225165562913,
+        "stated_right_probe_wrong": 0.019867549668874173,
+        "both_wrong": 0.033112582781456956
+      },
+      {
+        "n": 310,
+        "agreement": 0.47419354838709676,
+        "kappa_stated_probe": 0.03675321209348444,
+        "ba_probe": 0.9684782608695652,
+        "ba_stated": 0.5211956521739131,
+        "both_right": 0.4612903225806452,
+        "probe_right_stated_wrong": 0.5161290322580645,
+        "stated_right_probe_wrong": 0.00967741935483871,
+        "both_wrong": 0.012903225806451613
+      }
+    ],
+    "per_testbed": {
+      "sandbox": [
+        {
+          "n": 152,
+          "agreement": 0.7105263157894737,
+          "kappa_stated_probe": 0.1169791391602854,
+          "ba_probe": 1.0,
+          "ba_stated": 0.5520564042303173,
+          "both_right": 0.7105263157894737,
+          "probe_right_stated_wrong": 0.2894736842105263,
+          "stated_right_probe_wrong": 0.0,
+          "both_wrong": 0.0
+        },
+        {
+          "n": 144,
+          "agreement": 0.7361111111111112,
+          "kappa_stated_probe": 0.20580551523947757,
+          "ba_probe": 1.0,
+          "ba_stated": 0.5929226736566187,
+          "both_right": 0.7361111111111112,
+          "probe_right_stated_wrong": 0.2638888888888889,
+          "stated_right_probe_wrong": 0.0,
+          "both_wrong": 0.0
+        },
+        {
+          "n": 147,
+          "agreement": 0.6802721088435374,
+          "kappa_stated_probe": 0.03330068560235031,
+          "ba_probe": 1.0,
+          "ba_stated": 0.5151785714285715,
+          "both_right": 0.6802721088435374,
+          "probe_right_stated_wrong": 0.3197278911564626,
+          "stated_right_probe_wrong": 0.0,
+          "both_wrong": 0.0
+        }
+      ],
+      "scienceworld": [
+        {
+          "n": 76,
+          "agreement": 0.2894736842105263,
+          "kappa_stated_probe": 0.01912045889101343,
+          "ba_probe": 0.8982142857142856,
+          "ba_stated": 0.5178571428571429,
+          "both_right": 0.25,
+          "probe_right_stated_wrong": 0.6710526315789473,
+          "stated_right_probe_wrong": 0.039473684210526314,
+          "both_wrong": 0.039473684210526314
+        },
+        {
+          "n": 113,
+          "agreement": 0.5132743362831859,
+          "kappa_stated_probe": 0.138122313132714,
+          "ba_probe": 0.8890006706908116,
+          "ba_stated": 0.5726022803487592,
+          "both_right": 0.4336283185840708,
+          "probe_right_stated_wrong": 0.45132743362831856,
+          "stated_right_probe_wrong": 0.035398230088495575,
+          "both_wrong": 0.07964601769911504
+        },
+        {
+          "n": 120,
+          "agreement": 0.31666666666666665,
+          "kappa_stated_probe": 0.0074641920516440976,
+          "ba_probe": 0.9483311938382541,
+          "ba_stated": 0.5060975609756098,
+          "both_right": 0.3,
+          "probe_right_stated_wrong": 0.6583333333333333,
+          "stated_right_probe_wrong": 0.025,
+          "both_wrong": 0.016666666666666666
+        }
+      ],
+      "toolemu": [
+        {
+          "n": 38,
+          "agreement": 0.2894736842105263,
+          "kappa_stated_probe": 0.05524861878453045,
+          "ba_probe": 0.8410138248847927,
+          "ba_stated": 0.5806451612903226,
+          "both_right": 0.2631578947368421,
+          "probe_right_stated_wrong": 0.6578947368421053,
+          "stated_right_probe_wrong": 0.05263157894736842,
+          "both_wrong": 0.02631578947368421
+        },
+        {
+          "n": 45,
+          "agreement": 0.24444444444444444,
+          "kappa_stated_probe": -0.011904761904761946,
+          "ba_probe": 0.8857142857142857,
+          "ba_stated": 0.4928571428571429,
+          "both_right": 0.2222222222222222,
+          "probe_right_stated_wrong": 0.7111111111111111,
+          "stated_right_probe_wrong": 0.044444444444444446,
+          "both_wrong": 0.022222222222222223
+        },
+        {
+          "n": 43,
+          "agreement": 0.20930232558139536,
+          "kappa_stated_probe": -0.02094972067039104,
+          "ba_probe": 0.9146825396825397,
+          "ba_stated": 0.38492063492063494,
+          "both_right": 0.16279069767441862,
+          "probe_right_stated_wrong": 0.7906976744186046,
+          "stated_right_probe_wrong": 0.0,
+          "both_wrong": 0.046511627906976744
+        }
+      ]
+    }
+  },
+  "Llama-3.1-8B-Instruct": {
+    "per_seed": [
+      {
+        "n": 266,
+        "agreement": 0.7706766917293233,
+        "kappa_stated_probe": 0.0,
+        "ba_probe": 0.955987004950495,
+        "ba_stated": 0.5,
+        "both_right": 0.7518796992481203,
+        "probe_right_stated_wrong": 0.22180451127819548,
+        "stated_right_probe_wrong": 0.007518796992481203,
+        "both_wrong": 0.018796992481203006
+      },
+      {
+        "n": 302,
+        "agreement": 0.7052980132450332,
+        "kappa_stated_probe": 0.0,
+        "ba_probe": 0.9549852980486501,
+        "ba_stated": 0.5,
+        "both_right": 0.6887417218543046,
+        "probe_right_stated_wrong": 0.271523178807947,
+        "stated_right_probe_wrong": 0.023178807947019868,
+        "both_wrong": 0.016556291390728478
+      },
+      {
+        "n": 310,
+        "agreement": 0.7354838709677419,
+        "kappa_stated_probe": 0.0,
+        "ba_probe": 0.9703804347826087,
+        "ba_stated": 0.5,
+        "both_right": 0.7258064516129032,
+        "probe_right_stated_wrong": 0.24838709677419354,
+        "stated_right_probe_wrong": 0.016129032258064516,
+        "both_wrong": 0.00967741935483871
+      }
+    ],
+    "per_testbed": {
+      "sandbox": [
+        {
+          "n": 152,
+          "agreement": 0.756578947368421,
+          "kappa_stated_probe": 0.0,
+          "ba_probe": 1.0,
+          "ba_stated": 0.5,
+          "both_right": 0.756578947368421,
+          "probe_right_stated_wrong": 0.24342105263157895,
+          "stated_right_probe_wrong": 0.0,
+          "both_wrong": 0.0
+        },
+        {
+          "n": 144,
+          "agreement": 0.7569444444444444,
+          "kappa_stated_probe": 0.0,
+          "ba_probe": 1.0,
+          "ba_stated": 0.5,
+          "both_right": 0.7569444444444444,
+          "probe_right_stated_wrong": 0.24305555555555555,
+          "stated_right_probe_wrong": 0.0,
+          "both_wrong": 0.0
+        },
+        {
+          "n": 147,
+          "agreement": 0.7619047619047619,
+          "kappa_stated_probe": 0.0,
+          "ba_probe": 1.0,
+          "ba_stated": 0.5,
+          "both_right": 0.7619047619047619,
+          "probe_right_stated_wrong": 0.23809523809523808,
+          "stated_right_probe_wrong": 0.0,
+          "both_wrong": 0.0
+        }
+      ],
+      "scienceworld": [
+        {
+          "n": 76,
+          "agreement": 0.7631578947368421,
+          "kappa_stated_probe": 0.0,
+          "ba_probe": 0.9160714285714285,
+          "ba_stated": 0.5,
+          "both_right": 0.7236842105263158,
+          "probe_right_stated_wrong": 0.2236842105263158,
+          "stated_right_probe_wrong": 0.013157894736842105,
+          "both_wrong": 0.039473684210526314
+        },
+        {
+          "n": 113,
+          "agreement": 0.5929203539823009,
+          "kappa_stated_probe": 0.0,
+          "ba_probe": 0.9149899396378269,
+          "ba_stated": 0.5,
+          "both_right": 0.5663716814159292,
+          "probe_right_stated_wrong": 0.34513274336283184,
+          "stated_right_probe_wrong": 0.061946902654867256,
+          "both_wrong": 0.02654867256637168
+        },
+        {
+          "n": 120,
+          "agreement": 0.6916666666666667,
+          "kappa_stated_probe": 0.0,
+          "ba_probe": 0.9483311938382541,
+          "ba_stated": 0.5,
+          "both_right": 0.6666666666666666,
+          "probe_right_stated_wrong": 0.2916666666666667,
+          "stated_right_probe_wrong": 0.016666666666666666,
+          "both_wrong": 0.025
+        }
+      ],
+      "toolemu": [
+        {
+          "n": 38,
+          "agreement": 0.8421052631578947,
+          "kappa_stated_probe": 0.0,
+          "ba_probe": 0.8410138248847927,
+          "ba_stated": 0.5,
+          "both_right": 0.7894736842105263,
+          "probe_right_stated_wrong": 0.13157894736842105,
+          "stated_right_probe_wrong": 0.02631578947368421,
+          "both_wrong": 0.05263157894736842
+        },
+        {
+          "n": 45,
+          "agreement": 0.8222222222222222,
+          "kappa_stated_probe": 0.0,
+          "ba_probe": 0.9,
+          "ba_stated": 0.5,
+          "both_right": 0.7777777777777778,
+          "probe_right_stated_wrong": 0.17777777777777778,
+          "stated_right_probe_wrong": 0.0,
+          "both_wrong": 0.044444444444444446
+        },
+        {
+          "n": 43,
+          "agreement": 0.7674418604651163,
+          "kappa_stated_probe": 0.0,
+          "ba_probe": 0.9583333333333333,
+          "ba_stated": 0.5,
+          "both_right": 0.7674418604651163,
+          "probe_right_stated_wrong": 0.16279069767441862,
+          "stated_right_probe_wrong": 0.06976744186046512,
+          "both_wrong": 0.0
+        }
+      ]
+    }
+  }
+}
