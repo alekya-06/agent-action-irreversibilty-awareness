@@ -30,9 +30,8 @@ SEED = 0
 
 
 def find_run(model_short: str, variant: str) -> Path | None:
-    base = model_short + ("" if variant == "standard" else f"_{variant}") + "_tasks"
-    for name in (base, base + "_dev"):  # prefer the GPU run if it exists
-        path = ROOT / "results" / "rq2" / name / "stated.jsonl"
+    for stage in ("final", "dev"):  # prefer the GPU run if it exists
+        path = ROOT / "results" / "rq2" / stage / "tasks" / model_short / variant / "stated.jsonl"
         if path.exists():
             return path
     return None
@@ -111,7 +110,7 @@ def main() -> None:
         print(f"{'':<17} by environment: "
               + ", ".join(f"{e} {v:.2f}" for e, v in results["schemes"][scheme]["by_environment"].items()))
 
-    out = ROOT / "results" / "rq2" / f"k_{model_short}.json"
+    out = find_run(model_short, "standard").parents[1] / "k_scores.json"
     out.write_text(json.dumps(results, indent=2), encoding="utf-8")
     print(f"\nSaved {out}")
 

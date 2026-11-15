@@ -23,7 +23,7 @@ def main() -> None:
     parser.add_argument("runs", nargs="+", type=Path)
     args = parser.parse_args()
 
-    runs = {run.name: load(run) for run in args.runs}
+    runs = {f"{run.parent.name}/{run.name}": load(run) for run in args.runs}
     common = sorted(set.intersection(*(set(r) for r in runs.values())))
     print(f"{len(common)} rows in common\n")
     print(f"{'run':<42} {'accuracy':>8} {'bal acc':>8} {'AUROC':>6}  stated")

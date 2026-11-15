@@ -32,7 +32,7 @@ reversible but the prompt did not say so, option A was clarified to "Yes: either
 action changes nothing, or the state can be restored exactly within 3 actions" before
 the full runs. The clarification did **not** change the pattern; in one reply the model
 stated that the action changes nothing and still chose C. Pilot answers are kept in
-`results/rq2/pilot_original_prompt/`.
+`results/rq2/dev/pilot/original_prompt/`.
 
 ## Main results (full runs, standard question)
 

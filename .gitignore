@@ -7,3 +7,4 @@ external/
 data/qc/qc_key.jsonl
 results/*.log
 results/rq1/**/hidden_states/
+results/**/*.log
