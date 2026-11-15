@@ -7,7 +7,7 @@ import statistics
 from collections import defaultdict
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 CONTROLS = ["majority", "lexical_bow", "lexical_bow_minimal_pairs", "shuffled_labels", "layer_0_probe"]
 
 
