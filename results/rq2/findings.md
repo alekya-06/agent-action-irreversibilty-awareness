@@ -103,9 +103,9 @@ Accuracy on this subset is not comparable to the full runs (40% reversible here 
 When asked directly, both models' stated reversibility judgements are near chance and
 dominated by question framing (Llama: agreement bias; Qwen: order and wording effects).
 Their option probabilities carry a weak but framing-robust signal (AUROC 0.61-0.71).
-For the blindness gap (K - A), this suggests the models mostly do not *state*
-reversibility correctly, rather than knowing it but not acting on it; the probe (R1)
-will show whether the information is present internally.
+The R1 probe shows the information *is* present: probes decode reversibility at 0.95-0.96
+balanced accuracy on the same test rows where stated answers are at 0.50-0.56, with
+near-zero agreement between the two (kappa 0.00-0.09).
 
 ## Decisions recorded before further analysis
 
@@ -116,6 +116,36 @@ will show whether the information is present internally.
 - Balanced accuracy and AUROC are the primary R2 metrics; plain accuracy is reported
   alongside with its class baseline.
 
+## Stated answers vs the R1 probe (brief §7.1: kappa between stated answer and probe)
+
+Joined by row id on the R1 test splits (pooled binary probe, best layer by validation;
+266-310 rows per seed), stated answers mapped to binary (irreversible vs not).
+Script: `requirements/requirement2/r2_vs_probe.py`; results: `results/rq2/r2_vs_probe.json`.
+Means over seeds 42-44.
+
+| | Qwen | Llama |
+|---|---|---|
+| Probe balanced accuracy | 0.95 | 0.96 |
+| Stated balanced accuracy (same rows) | 0.56 | 0.50 |
+| Agreement | 0.53 | 0.74 |
+| Cohen's kappa (stated vs probe) | 0.09 (range 0.04-0.19) | 0.00 |
+| Probe right, stated wrong | 0.46 | 0.25 |
+| Stated right, probe wrong | 0.02 | 0.02 |
+
+- Kappa is near zero for both models: the stated answer is essentially unrelated to what
+  the probe decodes. Llama's high raw agreement only reflects that it always says
+  "reversible" on a majority-reversible test set.
+- When the stated answer is right, the probe is almost always right too (only 2% of rows
+  are stated-right/probe-wrong), whereas 25-46% are probe-right/stated-wrong: what the
+  model says correctly is contained in what its hidden state encodes, not the reverse.
+- Largest gap for Qwen in ToolEmu (probe right, stated wrong in 72% of rows) and
+  ScienceWorld (59%); smaller in the sandbox (24-29%), where the probe is at 1.00.
+- Interpretation: reversibility-relevant information is linearly decodable from the
+  hidden state but does not reach the stated answer. Given AB3 (no cross-testbed
+  transfer) and early best layers in the sandbox, this is evidence of testbed-specific
+  encoding of the relevant cues, not of an abstract, shared reversibility concept.
+
+  
 ## Caveats
 
 - Dev runs: float16 on Apple silicon, not bf16 on a GPU.
