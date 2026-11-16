@@ -9,3 +9,4 @@ results/*.log
 results/rq1/**/hidden_states/
 results/rq3/*_dev/
 results/rq3/env_versions_dev.json
+results/**/*.log

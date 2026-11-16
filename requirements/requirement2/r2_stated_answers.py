@@ -106,7 +106,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="R2 stated answers.")
     parser.add_argument("--model", default="qwen",help="qwen (default), llama, or a full Hugging Face model name")
     parser.add_argument("--files", nargs="+", default=DATA_FILES)
-    parser.add_argument("--out", type=Path, help="default: results/rq2/<model>[_dev]/stated.jsonl")
+    parser.add_argument("--out", type=Path, help="default: results/rq2/<dev|final>/<dataset|tasks>/<model>/<variant>/stated.jsonl")
     parser.add_argument("--limit", type=int, help="only a random sample of N rows (for testing)")
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--max-new-tokens", type=int, default=32)
@@ -125,9 +125,10 @@ def main() -> None:
 
     torch.manual_seed(SEED)
     device, dtype = pick_device()
-    short = (args.model.split("/")[-1] + ("" if args.variant == "standard" else f"_{args.variant}")
-             + ("_tasks" if args.tasks else "") + ("" if device == "cuda" else "_dev"))   
-    out = args.out or ROOT / "results" / "rq2" / short / "stated.jsonl"
+    stage = "final" if device == "cuda" else "dev"
+    kind = "tasks" if args.tasks else "dataset"
+    out = args.out or (ROOT / "results" / "rq2" / stage / kind
+                       / args.model.split("/")[-1] / args.variant / "stated.jsonl")
     out.parent.mkdir(parents=True, exist_ok=True)
 
     done = set()

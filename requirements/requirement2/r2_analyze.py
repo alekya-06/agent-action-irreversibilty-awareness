@@ -156,7 +156,8 @@ def fmt_ci(value, ci):
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="R2 analysis.")
-    parser.add_argument("--run", type=Path, default=ROOT / "results" / "rq2" / "Qwen2.5-7B-Instruct_dev")
+    parser.add_argument("--run", type=Path,
+                        default=ROOT / "results" / "rq2" / "dev" / "dataset" / "Qwen2.5-7B-Instruct" / "standard")
     args = parser.parse_args()
 
     data = {}

@@ -177,7 +177,7 @@ agent is more careful in the irreversible version**; McNemar's test on the paire
 
 ### Output format (the blindness gap needs this)
 
-K is already computed per pair (`results/rq2/k_*.json`). To compute K - A, save your
+K is already computed per pair (`results/rq2/dev/tasks/<model>/k_scores.json`). To compute K - A, save your
 results **per pair** for each model (and separately for the AB4 careful prompt):
 
 `results/rq3/<model>/pairs.jsonl`, one line per pair:
@@ -199,7 +199,7 @@ Also keep the full per-run logs (every prompt, model output, tool call and state
 ### The headline
 
 The blindness gap is **K - A**. K is already computed: **Qwen 0.22, Llama 0.00** (in
-`results/rq2/k_*.json`). Your A completes it. Use the same 60 tasks so the two are paired.
+`results/rq2/dev/tasks/<model>/k_scores.json`). Your A completes it. Use the same 60 tasks so the two are paired.
 
 ---
 
