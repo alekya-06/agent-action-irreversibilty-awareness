@@ -69,7 +69,11 @@ def mcnemar_exact(b: int, c: int) -> float:
 
 def load_k(model_dir: str) -> dict[str, int] | None:
     name = model_dir.split("_dev")[0].split("_seed")[0]
-    path = RQ2 / f"k_{name}.json"
+    # RQ2 moved the K files to results/rq2/dev/tasks/<model>/k_scores.json (16 Nov 2026);
+    # the old flat path is kept as a fallback.
+    path = RQ2 / "dev" / "tasks" / name / "k_scores.json"
+    if not path.exists():
+        path = RQ2 / f"k_{name}.json"
     if not path.exists():
         return None
     per_pair = json.loads(path.read_text(encoding="utf-8"))["schemes"]["standard"]["per_pair"]
