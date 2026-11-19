@@ -21,7 +21,7 @@ INPUT_CSV = (
     / "r1_ab1_ab2_three_seed_summary.csv"
 )
 
-OUTPUT_DIR = REPO_ROOT / "ab7_results"
+OUTPUT_DIR = REPO_ROOT / "results" / "ab7_results"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 print("=" * 65)
